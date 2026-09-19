@@ -1,0 +1,1762 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgenThinkOs — Clasificador de Manifestaciones</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  /* ============================================================
+     Reset + tipografía
+     ============================================================ */
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    background: #0f1419;
+    color: #e6e6e6;
+    min-height: 100vh;
+  }
+  .mono { font-family: "SF Mono", Consolas, "Liberation Mono", Menlo, monospace; }
+
+  /* ============================================================
+     Layout
+     ============================================================ */
+  header {
+    padding: 16px 24px;
+    background: #1a2332;
+    border-bottom: 1px solid #2a3a4f;
+  }
+  header h1 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #ffffff;
+  }
+  header p {
+    margin: 4px 0 0;
+    font-size: 12px;
+    color: #8a98a8;
+  }
+
+  .api-key-bar {
+    padding: 12px 24px;
+    background: #182230;
+    border-bottom: 1px solid #2a3a4f;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .api-key-bar label {
+    font-size: 12px;
+    color: #8a98a8;
+  }
+  .api-key-bar input {
+    flex: 1;
+    min-width: 280px;
+    padding: 6px 10px;
+    background: #0f1419;
+    border: 1px solid #2a3a4f;
+    border-radius: 4px;
+    color: #e6e6e6;
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 12px;
+  }
+  .api-key-bar .status {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 4px;
+  }
+  .api-key-bar .status.ok { background: #1f3a2a; color: #7adf8e; }
+  .api-key-bar .status.missing { background: #3a1f1f; color: #df7a7a; }
+
+  main {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 16px;
+    padding: 16px 24px;
+  }
+  @media (max-width: 900px) {
+    main { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: #1a2332;
+    border: 1px solid #2a3a4f;
+    border-radius: 6px;
+    padding: 16px;
+  }
+  .panel h2 {
+    margin: 0 0 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .panel p.help {
+    margin: 0 0 12px;
+    font-size: 12px;
+    color: #8a98a8;
+  }
+
+  .right-col {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* ============================================================
+     Form
+     ============================================================ */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 8px 12px;
+    align-items: center;
+  }
+  .form-grid label {
+    font-size: 12px;
+    color: #8a98a8;
+    text-align: right;
+  }
+  .form-grid input,
+  .form-grid select {
+    padding: 5px 8px;
+    background: #0f1419;
+    border: 1px solid #2a3a4f;
+    border-radius: 4px;
+    color: #e6e6e6;
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 12px;
+    width: 100%;
+  }
+  .form-grid input:focus,
+  .form-grid select:focus {
+    outline: none;
+    border-color: #4a90e2;
+  }
+  .form-section {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed #2a3a4f;
+  }
+  .form-section:last-child { border-bottom: none; }
+  .form-section h3 {
+    margin: 0 0 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #8a98a8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 8px 16px;
+    background: #2a5a9a;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn:hover:not(:disabled) { background: #3570c0; }
+  .btn:disabled {
+    background: #3a4a5f;
+    color: #8a98a8;
+    cursor: not-allowed;
+  }
+  .btn-secondary {
+    background: #2a3a4f;
+    color: #e6e6e6;
+  }
+  .btn-secondary:hover:not(:disabled) { background: #3a4a5f; }
+  .btn-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  /* ============================================================
+     Historia reciente (mini)
+     ============================================================ */
+  .hist-mini {
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 11px;
+    color: #c0c8d0;
+  }
+  .hist-mini div {
+    display: flex;
+    justify-content: space-between;
+    padding: 2px 0;
+  }
+  .hist-mini .ts { color: #8a98a8; }
+  .hist-mini .gas { color: #d4af37; }
+  .hist-mini .rop { color: #7adf8e; }
+
+  /* ============================================================
+     Resultados
+     ============================================================ */
+  .sev-badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+  }
+  .sev-critica { background: #8b1a1a; color: #ffffff; }
+  .sev-alta    { background: #b85a1a; color: #ffffff; }
+  .sev-media   { background: #b8a01a; color: #1a1a1a; }
+  .sev-baja    { background: #1a8b3a; color: #ffffff; }
+  .sev-none    { background: #3a4a5f; color: #e6e6e6; }
+
+  .dist-row {
+    display: grid;
+    grid-template-columns: 80px 1fr 60px;
+    align-items: center;
+    gap: 8px;
+    margin: 4px 0;
+    font-size: 12px;
+  }
+  .dist-label {
+    text-transform: capitalize;
+    color: #c0c8d0;
+  }
+  .dist-bar-wrap {
+    background: #0f1419;
+    height: 16px;
+    border-radius: 3px;
+    overflow: hidden;
+    border: 1px solid #2a3a4f;
+  }
+  .dist-bar {
+    height: 100%;
+    transition: width 0.4s ease;
+  }
+  .dist-pct {
+    text-align: right;
+    font-family: "SF Mono", Consolas, monospace;
+    color: #c0c8d0;
+  }
+
+  .noul-row {
+    display: grid;
+    grid-template-columns: 180px 1fr 60px;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0;
+    font-size: 12px;
+  }
+
+  .tokens {
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px dashed #2a3a4f;
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 11px;
+    color: #8a98a8;
+  }
+
+  /* ============================================================
+     Comparativo
+     ============================================================ */
+  .comp-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .comp-card {
+    padding: 10px 12px;
+    background: #0f1419;
+    border: 1px solid #2a3a4f;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+  .comp-card h4 {
+    margin: 0 0 6px;
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #8a98a8;
+  }
+  .comp-card .item {
+    padding: 6px 0;
+    border-top: 1px dashed #2a3a4f;
+  }
+  .comp-card .item:first-of-type { border-top: none; }
+  .comp-card .item .name {
+    font-family: "SF Mono", Consolas, monospace;
+    color: #c0c8d0;
+    font-size: 11px;
+  }
+  .comp-card .item .detail {
+    color: #e6e6e6;
+    margin-top: 2px;
+  }
+  .comp-card.empty {
+    color: #8a98a8;
+    font-style: italic;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .diff-banner {
+    margin-top: 10px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .diff-banner.agree    { background: #1f3a2a; color: #7adf8e; }
+  .diff-banner.differ   { background: #3a2f1f; color: #dfba7a; }
+  .diff-banner.big-diff { background: #3a1f1f; color: #df7a7a; }
+
+  /* ============================================================
+     Historial
+     ============================================================ */
+  .historial-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: 12px;
+  }
+  .historial-list li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 10px;
+    border-bottom: 1px solid #2a3a4f;
+  }
+  .historial-list li:last-child { border-bottom: none; }
+  .historial-list .ts {
+    font-family: "SF Mono", Consolas, monospace;
+    color: #8a98a8;
+    min-width: 140px;
+  }
+  .historial-list .md {
+    font-family: "SF Mono", Consolas, monospace;
+    color: #c0c8d0;
+    min-width: 70px;
+  }
+  .historial-list .rel {
+    flex: 1;
+    font-size: 11px;
+  }
+  .historial-list .rel .ok   { color: #7adf8e; }
+  .historial-list .rel .diff { color: #dfba7a; }
+
+  /* ============================================================
+     Spinner y errores
+     ============================================================ */
+  .spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid #4a90e2;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ============================================================
+     Batch (lecturas desde Boleta + cromatografia)
+     ============================================================ */
+  .full-width { grid-column: 1 / -1; }
+  .drop-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 2px dashed #4a90e2;
+    border-radius: 6px;
+    padding: 32px 24px;
+    min-height: 130px;
+    margin-top: 6px;
+    text-align: center;
+    background: #182230;
+    color: #c0c8d0;
+    transition: background 0.15s, border-color 0.15s;
+    cursor: pointer;
+    box-sizing: border-box;
+  }
+  .drop-zone.dragover {
+    background: #1f3a5a;
+    border-color: #7ab0e2;
+  }
+  .drop-zone.loaded {
+    border-color: #7adf8e;
+    background: #1f3a2a;
+    color: #7adf8e;
+  }
+  .drop-zone input[type="file"] { display: none; }
+  .drop-zone .filename {
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 11px;
+    margin-top: 6px;
+    color: #8a98a8;
+  }
+
+  .progress-bar {
+    width: 100%;
+    height: 10px;
+    background: #0f1419;
+    border: 1px solid #2a3a4f;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 12px 0;
+  }
+  .progress-bar .fill {
+    height: 100%;
+    background: #4a90e2;
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+  .progress-text {
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 11px;
+    color: #8a98a8;
+    text-align: right;
+    margin-top: -8px;
+    margin-bottom: 12px;
+  }
+
+  .batch-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+    font-family: "SF Mono", Consolas, monospace;
+  }
+  .batch-table th, .batch-table td {
+    padding: 6px 10px;
+    text-align: left;
+    border-bottom: 1px solid #2a3a4f;
+  }
+  .batch-table th {
+    color: #8a98a8;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    background: #182230;
+    position: sticky;
+    top: 0;
+  }
+  .batch-table .row-critica td.md-col { color: #ffaaaa; font-weight: 600; }
+  .batch-table .row-alta td.md-col { color: #ffc89a; font-weight: 600; }
+  .batch-table .row-media td.md-col { color: #ffe07a; }
+  .batch-table .row-baja td.md-col { color: #aae0bf; }
+  .batch-table .row-pending td.md-col { color: #c0c8d0; }
+
+  .batch-controls {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 12px 0;
+  }
+
+  .batch-summary {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin: 12px 0;
+  }
+  .batch-summary .stat {
+    padding: 10px 12px;
+    background: #0f1419;
+    border: 1px solid #2a3a4f;
+    border-radius: 4px;
+    text-align: center;
+  }
+  .batch-summary .stat .num {
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 20px;
+    font-weight: 700;
+    color: #ffffff;
+  }
+  .batch-summary .stat .label {
+    font-size: 10px;
+    color: #8a98a8;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  .batch-results-wrap {
+    max-height: 500px;
+    overflow-y: auto;
+    border: 1px solid #2a3a4f;
+    border-radius: 4px;
+  }
+
+  .error-banner {
+    margin-top: 12px;
+    padding: 10px 12px;
+    background: #3a1f1f;
+    border-left: 3px solid #df7a7a;
+    color: #df7a7a;
+    border-radius: 3px;
+    font-size: 12px;
+    font-family: "SF Mono", Consolas, monospace;
+    white-space: pre-wrap;
+  }
+
+  footer {
+    padding: 12px 24px;
+    color: #6a7a8a;
+    font-size: 11px;
+    text-align: center;
+    border-top: 1px solid #2a3a4f;
+    margin-top: 16px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>AgenThinkOs — Clasificador de Manifestaciones</h1>
+  <p>Cabinas Geológicas · Demo MVP: modelo calibrado vs reglas duras de anomaly_detector.py — uso local</p>
+</header>
+
+<div class="api-key-bar">
+  <label for="apiKey">API key del proveedor:</label>
+  <input id="apiKey" type="password" placeholder="pega aquí tu API key (se guarda solo en tu navegador)" autocomplete="off">
+  <button class="btn btn-secondary" id="saveKeyBtn">Guardar</button>
+  <span class="status" id="keyStatus"></span>
+</div>
+
+<main>
+  <!-- =======================================================
+       COLUMNA IZQUIERDA: ENTRADA
+       ======================================================= -->
+  <section class="panel" id="inputPanel">
+    <h2>Lectura actual</h2>
+    <p class="help">Edita los valores y presiona "Clasificar con AgenThinkOs". La historia reciente alimenta las reglas duras.</p>
+
+    <div class="form-section">
+      <h3>Parámetros de perforación</h3>
+      <div class="form-grid">
+        <label for="md">md (m)</label>
+        <input id="md" type="number" step="0.1" value="3580.5">
+        <label for="rop">rop (m/h)</label>
+        <input id="rop" type="number" step="0.1" value="4.2">
+        <label for="wob">wob (klbf)</label>
+        <input id="wob" type="number" step="0.1" value="12">
+        <label for="rpm">rpm</label>
+        <input id="rpm" type="number" step="1" value="110">
+        <label for="den_in">den_in</label>
+        <input id="den_in" type="number" step="0.01" value="1.18">
+        <label for="den_out">den_out</label>
+        <input id="den_out" type="number" step="0.01" value="1.10">
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h3>Composición de gas (ppm)</h3>
+      <div class="form-grid">
+        <label for="gas_total">gas_total</label>
+        <input id="gas_total" type="number" step="1" value="8200">
+        <label for="c1">C1</label>
+        <input id="c1" type="number" step="1" value="4500">
+        <label for="c2">C2</label>
+        <input id="c2" type="number" step="1" value="2200">
+        <label for="c3">C3</label>
+        <input id="c3" type="number" step="1" value="800">
+        <label for="ic4">iC4</label>
+        <input id="ic4" type="number" step="1" value="200">
+        <label for="nc5">nC5</label>
+        <input id="nc5" type="number" step="1" value="90">
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h3>Contexto operativo</h3>
+      <div class="form-grid">
+        <label for="formacion">Formación</label>
+        <select id="formacion">
+          <option value="Kimmeridge" selected>Kimmeridge</option>
+          <option value="Burgos">Burgos</option>
+          <option value="Chiapas">Chiapas</option>
+          <option value="Veracruz">Veracruz</option>
+        </select>
+        <label for="operacion">Operación</label>
+        <select id="operacion">
+          <option value="perforando_rotando" selected>Perforando rotando</option>
+          <option value="perforando_deslizando">Perforando deslizando</option>
+          <option value="sacando_tuberia">Sacando tubería</option>
+          <option value="bajando_tuberia">Bajando tubería</option>
+          <option value="conexion">Conexión</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h3>Historia reciente (4 lecturas)</h3>
+      <div class="hist-mini" id="historiaMini"></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn" id="clasificarBtn">Clasificar con AgenThinkOs</button>
+      <button class="btn btn-secondary" id="limpiarBtn">Limpiar resultados</button>
+    </div>
+  </section>
+
+  <!-- =======================================================
+       COLUMNA DERECHA: RESULTADOS
+       ======================================================= -->
+  <div class="right-col">
+    <section class="panel">
+      <h2>Resultado AgenThinkOs</h2>
+      <div id="resultadoModelo">
+        <p class="help">Presiona "Clasificar con AgenThinkOs" para ver la severidad calibrada y los juicios probabilísticos.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Comparativo: reglas duras vs AgenThinkOs</h2>
+      <p class="help">Misma lectura, dos miradas. Las reglas duras son las del anomaly_detector.py actual.</p>
+      <div class="comp-grid">
+        <div class="comp-card" id="compReglas">
+          <h4>Reglas duras</h4>
+          <div class="empty">Sin clasificar aún</div>
+        </div>
+        <div class="comp-card" id="compModelo">
+          <h4>Calibrado</h4>
+          <div class="empty">Sin clasificar aún</div>
+        </div>
+      </div>
+      <div id="diffBanner"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Historial (memoria del navegador)</h2>
+      <p class="help">Últimas clasificaciones. "Recargar" rellena el formulario con esa lectura.</p>
+      <ul class="historial-list" id="historialList">
+        <li style="color:#8a98a8;font-style:italic;">Sin clasificaciones aún</li>
+      </ul>
+    </section>
+  </div>
+
+  <!-- =======================================================
+       SECCION BATCH: lectura automatica desde Boleta + cromatografia
+       ======================================================= -->
+  <section class="panel full-width" id="batchPanel" style="margin-top:16px;">
+    <h2>Modo Batch — Boleta Diaria + Cromatografía</h2>
+    <p class="help" style="margin-bottom:24px;">Sube una Boleta Diaria OAE (.xls) y, opcionalmente, una Tabla de Cromatografía (.xlsx). El sistema identifica lecturas críticas (reglas duras + composición de gas), te muestra cuáles son, y luego las clasifica con el modelo calibrado.</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+      <div>
+        <label style="display:block;font-size:11px;color:#8a98a8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Boleta Diaria</label>
+        <label class="drop-zone" id="dropBoleta" for="fileBoleta">
+          <div style="font-size:14px;">📄 Arrastra o haz click para subir</div>
+          <div style="font-size:11px;color:#8a98a8;">Boleta Diaria OAE (.xls legacy)</div>
+          <div class="filename" id="filenameBoleta"></div>
+          <input type="file" id="fileBoleta" accept=".xls,.xlsx">
+        </label>
+      </div>
+      <div>
+        <label style="display:block;font-size:11px;color:#8a98a8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Cromatografía (opcional)</label>
+        <label class="drop-zone" id="dropCromatografia" for="fileCromatografia">
+          <div style="font-size:14px;">📊 Arrastra o haz click para subir</div>
+          <div style="font-size:11px;color:#8a98a8;">Tabla de Cromatografía (.xlsx)</div>
+          <div class="filename" id="filenameCromatografia"></div>
+          <input type="file" id="fileCromatografia" accept=".xlsx">
+        </label>
+      </div>
+    </div>
+
+    <div class="batch-controls">
+      <button class="btn" id="detectarBtn" disabled>1) Detectar lecturas críticas</button>
+      <button class="btn" id="clasificarBatchBtn" disabled>2) Clasificar críticas con el modelo</button>
+      <button class="btn btn-secondary" id="descargarBatchBtn" disabled>Descargar resultados (JSON)</button>
+      <button class="btn btn-secondary" id="limpiarBatchBtn">Limpiar batch</button>
+    </div>
+
+    <div id="batchSummary" class="batch-summary" style="display:none;">
+      <div class="stat"><div class="num" id="statLecturas">-</div><div class="label">Lecturas</div></div>
+      <div class="stat"><div class="num" id="statHits">-</div><div class="label">Hits detectados</div></div>
+      <div class="stat"><div class="num" id="statClasificadas">-</div><div class="label">Clasificadas</div></div>
+      <div class="stat"><div class="num" id="statCritica">-</div><div class="label">CRÍTICA</div></div>
+      <div class="stat"><div class="num" id="statTokens">-</div><div class="label">Tokens usados</div></div>
+    </div>
+
+    <div id="progressWrap" style="display:none;">
+      <div class="progress-bar"><div class="fill" id="progressFill"></div></div>
+      <div class="progress-text" id="progressText">0 / 0</div>
+    </div>
+
+    <div class="batch-results-wrap" id="batchResultsWrap" style="display:none;">
+      <table class="batch-table" id="batchTable">
+        <thead>
+          <tr>
+            <th>md</th>
+            <th>Regla(s)</th>
+            <th>Severidad regla</th>
+            <th>Severidad modelo</th>
+            <th>Gas (ppm)</th>
+            <th>Termogénico</th>
+            <th>Tendencia</th>
+            <th>Tokens</th>
+          </tr>
+        </thead>
+        <tbody id="batchTableBody"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<footer>
+  MVP AgenThinkOs — uso local · API key en navegador · Sin persistencia en servidor · Sin build step
+</footer>
+
+<script>
+// ============================================================
+// Estado global
+// ============================================================
+const STORAGE_KEY = 'agenthinkos.apiKey';
+const HIST_KEY = 'agenthinkos.historial';
+const HIST_MAX = 10;
+
+// Historia reciente inicial (4 lecturas del PRD)
+const HISTORIA_INICIAL = [
+  { ts: 'T-15min', gas_total: 850,  rop: 5.8 },
+  { ts: 'T-10min', gas_total: 1100, rop: 5.5 },
+  { ts: 'T-5min',  gas_total: 4800, rop: 4.8 },
+  { ts: 'T-2min',  gas_total: 8200, rop: 4.2 },
+];
+
+// Reglas (defaults de anomaly_detector.py)
+const RULES = {
+  gas_factor_pico: 5,
+  gas_umbral_absoluto: 5000,
+  densidad_caida_pct: 5,
+  rop_caida_pct: 80,
+};
+
+// Severidad ordenada para "peor de las peores"
+const SEV_ORDER = ['baja', 'media', 'alta', 'critica'];
+
+// ============================================================
+// Utilidades
+// ============================================================
+function $(id) { return document.getElementById(id); }
+
+function leerLectura() {
+  return {
+    timestamp: new Date().toISOString(),
+    md:        parseFloat($('md').value) || 0,
+    rop:       parseFloat($('rop').value) || 0,
+    wob:       parseFloat($('wob').value) || 0,
+    rpm:       parseFloat($('rpm').value) || 0,
+    den_in:    parseFloat($('den_in').value) || 0,
+    den_out:   parseFloat($('den_out').value) || 0,
+    gas_total: parseFloat($('gas_total').value) || 0,
+    c1:        parseFloat($('c1').value) || 0,
+    c2:        parseFloat($('c2').value) || 0,
+    c3:        parseFloat($('c3').value) || 0,
+    ic4:       parseFloat($('ic4').value) || 0,
+    nc5:       parseFloat($('nc5').value) || 0,
+    operacion:    $('operacion').value,
+    formacion:    $('formacion').value,
+    historia:     HISTORIA_INICIAL,
+  };
+}
+
+function fmtPct(v) {
+  return (v * 100).toFixed(0) + '%';
+}
+
+function sevClass(sev) {
+  return 'sev-' + (sev || 'none');
+}
+
+function peorSeveridad(lista) {
+  // lista: [{severidad, ...}]; devuelve la peor según SEV_ORDER
+  let peor = null;
+  let peorIdx = -1;
+  for (const it of lista) {
+    const idx = SEV_ORDER.indexOf(it.severidad);
+    if (idx > peorIdx) { peor = it.severidad; peorIdx = idx; }
+  }
+  return peor || 'baja';
+}
+
+// ============================================================
+// API key
+// ============================================================
+function cargarApiKey() {
+  const k = localStorage.getItem(STORAGE_KEY) || '';
+  $('apiKey').value = k;
+  actualizarEstadoKey();
+}
+function guardarApiKey() {
+  const k = $('apiKey').value.trim();
+  if (k) {
+    localStorage.setItem(STORAGE_KEY, k);
+  } else {
+    localStorage.removeItem(STORAGE_KEY);
+  }
+  actualizarEstadoKey();
+}
+function actualizarEstadoKey() {
+  const k = $('apiKey').value.trim();
+  const el = $('keyStatus');
+  if (k && k.length >= 20) {
+    el.textContent = '✓ key cargada';
+    el.className = 'status ok';
+    $('clasificarBtn').disabled = false;
+  } else if (k) {
+    el.textContent = '⚠ key muy corta (mínimo 20 caracteres)';
+    el.className = 'status missing';
+    $('clasificarBtn').disabled = true;
+  } else {
+    el.textContent = '✗ sin key';
+    el.className = 'status missing';
+    $('clasificarBtn').disabled = true;
+  }
+}
+
+// ============================================================
+// Render historia mini
+// ============================================================
+function renderHistoriaMini() {
+  const cont = $('historiaMini');
+  cont.innerHTML = HISTORIA_INICIAL.map(h => `
+    <div>
+      <span class="ts">${h.ts.padEnd(8)}</span>
+      <span class="gas">gas ${String(h.gas_total).padStart(5)}</span>
+      <span class="rop">rop ${h.rop.toFixed(1)}</span>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// Reglas duras (port de pure_detect_* de anomaly_detector.py)
+// ============================================================
+function mediana(arr) {
+  const clean = arr.filter(v => v != null && v > 0);
+  if (!clean.length) return 0;
+  const s = [...clean].sort((a, b) => a - b);
+  const n = s.length;
+  return n % 2 === 1 ? s[n >> 1] : (s[(n >> 1) - 1] + s[n >> 1]) / 2;
+}
+function promedio(arr) {
+  const clean = arr.filter(v => v != null && v > 0);
+  return clean.length ? clean.reduce((a, b) => a + b, 0) / clean.length : 0;
+}
+
+function detectGas(lectura) {
+  const gas = lectura.gas_total;
+  if (!gas) return null;
+  const bg = mediana(lectura.historia.map(h => h.gas_total));
+  if (bg > 0 && gas > bg * RULES.gas_factor_pico) {
+    const factor = gas / bg;
+    const sev = factor > 10 ? 'critica' : factor > 5 ? 'alta' : 'media';
+    return {
+      tipo: 'gas_pico',
+      severidad: sev,
+      detalle: `Gas ${gas} ppm = ${factor.toFixed(1)}× sobre background ${bg.toFixed(0)} ppm`,
+    };
+  }
+  if (gas > RULES.gas_umbral_absoluto) {
+    const sev = gas > 2 * RULES.gas_umbral_absoluto ? 'alta' : 'media';
+    return {
+      tipo: 'gas_absoluto',
+      severidad: sev,
+      detalle: `Gas ${gas} ppm supera umbral absoluto ${RULES.gas_umbral_absoluto} ppm`,
+    };
+  }
+  return null;
+}
+
+function detectDensidad(lectura) {
+  const { den_in, den_out } = lectura;
+  if (!(den_in > 0 && den_out > 0)) return null;
+  const caida = ((den_in - den_out) / den_in) * 100;
+  if (caida > RULES.densidad_caida_pct) {
+    const sev = caida > 8 ? 'critica' : 'alta';
+    return {
+      tipo: 'densidad_caida',
+      severidad: sev,
+      detalle: `Den salida ${den_out} es ${caida.toFixed(1)}% menor que entrada ${den_in}`,
+    };
+  }
+  return null;
+}
+
+function detectRop(lectura) {
+  const ropActual = lectura.rop;
+  if (ropActual <= 0) return null;
+  const ropProm = promedio(lectura.historia.map(h => h.rop));
+  if (!ropProm || ropProm <= 0) return null;
+  const caida = ((ropProm - ropActual) / ropProm) * 100;
+  if (caida > RULES.rop_caida_pct) {
+    const sev = caida < 90 ? 'media' : 'alta';
+    return {
+      tipo: 'rop_caida',
+      severidad: sev,
+      detalle: `ROP cayó ${caida.toFixed(0)}% (de ${ropProm.toFixed(1)} a ${ropActual} m/h)`,
+    };
+  }
+  return null;
+}
+
+function severidadPorReglas(lectura) {
+  const hits = [];
+  for (const det of [detectGas, detectDensidad, detectRop]) {
+    try {
+      const r = det(lectura);
+      if (r) hits.push(r);
+    } catch (e) {
+      console.error('Error en detector:', e);
+    }
+  }
+  return {
+    hits,
+    severidad: peorSeveridad(hits),
+  };
+}
+
+// ============================================================
+// Llamada HTTP al proveedor del modelo
+// ============================================================
+async function clasificarConModelo(lectura) {
+  const apiKey = localStorage.getItem(STORAGE_KEY);
+  if (!apiKey) throw new Error('Falta API key. Pégala arriba y presiona Guardar.');
+
+  const bgGas = mediana(lectura.historia.map(h => h.gas_total));
+  const ropProm = promedio(lectura.historia.map(h => h.rop));
+  const denProm = promedio(lectura.historia.map(h => h.den_out).filter(v => v > 0));
+
+  const state = {
+    lectura_actual: {
+      timestamp: lectura.timestamp,
+      md: lectura.md,
+      rop: lectura.rop,
+      wob: lectura.wob,
+      rpm: lectura.rpm,
+      den_in: lectura.den_in,
+      den_out: lectura.den_out,
+      gas_total: lectura.gas_total,
+      c1: lectura.c1,
+      c2: lectura.c2,
+      c3: lectura.c3,
+      ic4: lectura.ic4,
+      nc5: lectura.nc5,
+    },
+    background_24h: {
+      gas_mediana_ppm: bgGas,
+      rop_promedio: ropProm,
+      den_out_promedio: denProm || lectura.den_out,
+    },
+    operacion: lectura.operacion,
+    formacion_actual: lectura.formacion,
+    historia_reciente: lectura.historia,
+  };
+
+  const questions = {
+    severidad_calibrada: {
+      type: 'choice',
+      instructions:
+        'Calibra la severidad real de esta manifestacion geologica, ' +
+        'considerando magnitud Y contexto (formacion, operacion, composicion del gas, tendencia reciente).',
+      criteria: {
+        critica:
+          'Requiere accion inmediata (parada, cierre, escalamiento). ' +
+          'Gas termogenico, perdida de densidad sostenida, formacion sensible.',
+        alta:
+          'Atencion prioritaria del geologo de turno en los proximos minutos. ' +
+          'Anomalo pero no requiere parada inmediata.',
+        media:
+          'Anomalia menor o esperada en este contexto operacional. ' +
+          'Registrar y revisar al cierre del turno.',
+        baja:
+          'Variacion normal dentro del rango estadistico de la formacion actual.',
+      },
+    },
+    es_gas_pesado: {
+      type: 'noul',
+      instructions:
+        'El pico de gas tiene composicion termogenica (presencia significativa de C2, C3, IC4, NC5) vs. biogenica (mayormente C1).',
+    },
+    es_tendencia_empeorando: {
+      type: 'noul',
+      instructions:
+        'El ultimo cuarto de hora muestra una tendencia que empeora (gas subiendo, ROP cayendo, densidad bajando) vs. es un pico puntual ya estabilizandose.',
+    },
+  };
+
+  const body = {
+    state,
+    model: 'jev-latest',
+    questions,
+  };
+
+  const resp = await fetch('/v1/systemone', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + apiKey,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!resp.ok) {
+    let msg = `HTTP ${resp.status} ${resp.statusText}`;
+    try {
+      const errBody = await resp.text();
+      msg += `\n${errBody}`;
+    } catch (_) {}
+    throw new Error(msg);
+  }
+
+  const data = await resp.json();
+  const sev = data.answers.severidad_calibrada;
+  return {
+    modelo: data.model,
+    severidad_modelo: sev.choice,
+    probabilidades: sev.probabilities,
+    es_gas_pesado: data.answers.es_gas_pesado.noul,
+    es_tendencia_empeorando: data.answers.es_tendencia_empeorando.noul,
+    tokens: {
+      input: data.usage.input_tokens,
+      output: data.usage.output_tokens,
+    },
+    raw: data,
+  };
+}
+
+// ============================================================
+// Render de resultados
+// ============================================================
+function renderModelo(modelo) {
+  const sevUpper = modelo.severidad_modelo.toUpperCase();
+  let html = `<span class="sev-badge ${sevClass(modelo.severidad_modelo)}">${sevUpper}</span>`;
+  html += '<div style="margin-bottom:12px;"><strong style="font-size:12px;color:#8a98a8;text-transform:uppercase;">Distribución de probabilidad</strong></div>';
+  for (const [k, v] of Object.entries(modelo.probabilidades)) {
+    const width = Math.max(2, v * 100);
+    html += `
+        <div class="dist-row">
+          <div class="dist-label">${k}</div>
+          <div class="dist-bar-wrap"><div class="dist-bar ${sevClass(k)}" style="width:${width}%"></div></div>
+          <div class="dist-pct">${fmtPct(v)}</div>
+        </div>`;
+  }
+  html += '<div style="margin-top:14px;"><strong style="font-size:12px;color:#8a98a8;text-transform:uppercase;">Juicios probabilísticos</strong></div>';
+  for (const [k, v] of [
+    ['es_gas_pesado', modelo.es_gas_pesado],
+    ['es_tendencia_empeorando', modelo.es_tendencia_empeorando],
+  ]) {
+    const width = Math.max(2, v * 100);
+    const label = k === 'es_gas_pesado' ? 'Gas termogénico (C2+ significativo)' : 'Tendencia al empeoramiento';
+    html += `
+        <div class="noul-row">
+          <div>${label}</div>
+          <div class="dist-bar-wrap"><div class="dist-bar ${v > 0.6 ? 'sev-alta' : v > 0.3 ? 'sev-media' : 'sev-baja'}" style="width:${width}%"></div></div>
+          <div class="dist-pct">${fmtPct(v)}</div>
+        </div>`;
+  }
+  html += `<div class="tokens">Tokens consumidos: ${modelo.tokens.input} in / ${modelo.tokens.output} out</div>`;
+  $('resultadoModelo').innerHTML = html;
+}
+
+function renderError(msg) {
+  $('resultadoModelo').innerHTML = `<div class="error-banner">Error:\n${msg}</div>`;
+}
+
+function renderComparativo(reglas, modelo) {
+  // Reglas
+  const compReglas = $('compReglas');
+  if (reglas.hits.length === 0) {
+    compReglas.innerHTML = `
+      <h4>Reglas duras</h4>
+      <div class="empty">Ninguna regla disparó.<br>Severidad: BAJA</div>`;
+  } else {
+    const sev = reglas.severidad.toUpperCase();
+    let html = `<h4>Reglas duras <span class="mono" style="float:right;">[${sev}]</span></h4>`;
+    for (const h of reglas.hits) {
+      html += `<div class="item">
+        <div class="name">${h.tipo} · <span class="${sevClass(h.severidad)}" style="padding:1px 6px;border-radius:3px;">${h.severidad.toUpperCase()}</span></div>
+        <div class="detail">${h.detalle}</div>
+      </div>`;
+    }
+    compReglas.innerHTML = html;
+  }
+
+  // Comparativo
+  const compModelo = $('compModelo');
+  const sevModelo = modelo.severidad_modelo.toUpperCase();
+  const probCritica = (modelo.probabilidades.critica * 100).toFixed(0);
+  const termog = (modelo.es_gas_pesado * 100).toFixed(0);
+  const tend = (modelo.es_tendencia_empeorando * 100).toFixed(0);
+  compModelo.innerHTML = `
+    <h4>Calibrado <span class="mono" style="float:right;">[${sevModelo}]</span></h4>
+    <div class="item">
+      <div class="name">severidad_calibrada</div>
+      <div class="detail">
+        ${sevModelo} (P=${probCritica}% si fue critica, sino P según criterio ganador)
+      </div>
+    </div>
+    <div class="item">
+      <div class="name">termogenicidad</div>
+      <div class="detail">${termog}% de probabilidad de gas termogénico (C2+ significativo).</div>
+    </div>
+    <div class="item">
+      <div class="name">tendencia agravante</div>
+      <div class="detail">${tend}% de probabilidad de tendencia al empeoramiento.</div>
+    </div>`;
+
+  // Diff banner
+  const banner = $('diffBanner');
+  const sevReglasIdx = SEV_ORDER.indexOf(reglas.severidad);
+  const sevModeloIdx = SEV_ORDER.indexOf(modelo.severidad_modelo);
+  const diff = Math.abs(sevReglasIdx - sevModeloIdx);
+  if (reglas.severidad === modelo.severidad_modelo) {
+    banner.innerHTML = `<div class="diff-banner agree">✓ Coinciden: ambas dicen "${reglas.severidad.toUpperCase()}".</div>`;
+  } else if (diff === 1) {
+    banner.innerHTML = `<div class="diff-banner differ">⚠ Difieren 1 nivel: reglas=${reglas.severidad.toUpperCase()}, modelo=${sevModelo}. Revisar contexto (formación, composición gas).</div>`;
+  } else {
+    banner.innerHTML = `<div class="diff-banner big-diff">⚠ Difieren ${diff} niveles: reglas=${reglas.severidad.toUpperCase()}, modelo=${sevModelo}. Caso para revisión manual.</div>`;
+  }
+}
+
+// ============================================================
+// Historial
+// ============================================================
+let historial = [];
+
+function cargarHistorial() {
+  try {
+    const raw = sessionStorage.getItem(HIST_KEY);
+    historial = raw ? JSON.parse(raw) : [];
+  } catch (_) {
+    historial = [];
+  }
+  renderHistorial();
+}
+function guardarHistorial() {
+  sessionStorage.setItem(HIST_KEY, JSON.stringify(historial));
+}
+function pushHistorial(lectura, reglas, modelo) {
+  historial.unshift({
+    ts: new Date().toLocaleTimeString(),
+    lectura: { ...lectura, historia: undefined }, // no duplicar historia
+    reglas_sev: reglas.severidad,
+    modelo_sev: modelo.severidad_modelo,
+  });
+  if (historial.length > HIST_MAX) historial = historial.slice(0, HIST_MAX);
+  guardarHistorial();
+  renderHistorial();
+}
+function renderHistorial() {
+  const ul = $('historialList');
+  if (!historial.length) {
+    ul.innerHTML = '<li style="color:#8a98a8;font-style:italic;">Sin clasificaciones aún</li>';
+    return;
+  }
+  ul.innerHTML = historial.map((h, i) => {
+    const agree = h.reglas_sev === h.modelo_sev;
+    const rel = agree
+      ? `<span class="ok">coinciden</span> (${h.modelo_sev})`
+      : `<span class="diff">difieren</span> reglas=${h.reglas_sev} vs modelo=${h.modelo_sev}`;
+    return `<li>
+      <span class="ts">${h.ts}</span>
+      <span class="md">md=${h.lectura.md}</span>
+      <span class="rel">${rel}</span>
+      <button class="btn btn-secondary" data-idx="${i}" style="padding:3px 10px;font-size:11px;">Recargar</button>
+    </li>`;
+  }).join('');
+  ul.querySelectorAll('button[data-idx]').forEach(b => {
+    b.addEventListener('click', () => {
+      const i = parseInt(b.dataset.idx, 10);
+      const item = historial[i];
+      if (item) cargarLecturaEnForm(item.lectura);
+    });
+  });
+}
+function cargarLecturaEnForm(l) {
+  if (!l) return;
+  $('md').value = l.md ?? '';
+  $('rop').value = l.rop ?? '';
+  $('wob').value = l.wob ?? '';
+  $('rpm').value = l.rpm ?? '';
+  $('den_in').value = l.den_in ?? '';
+  $('den_out').value = l.den_out ?? '';
+  $('gas_total').value = l.gas_total ?? '';
+  $('c1').value = l.c1 ?? '';
+  $('c2').value = l.c2 ?? '';
+  $('c3').value = l.c3 ?? '';
+  $('ic4').value = l.ic4 ?? '';
+  $('nc5').value = l.nc5 ?? '';
+  if (l.formacion) $('formacion').value = l.formacion;
+  if (l.operacion) $('operacion').value = l.operacion;
+}
+
+// ============================================================
+// Botones principales
+// ============================================================
+async function onClasificar() {
+  const btn = $('clasificarBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Clasificando...';
+
+  try {
+    const lectura = leerLectura();
+    // Primero reglas duras (instantáneo, sin red)
+    const reglas = severidadPorReglas(lectura);
+    // Llamada al modelo (red)
+    const modelo = await clasificarConModelo(lectura);
+
+    renderModelo(modelo);
+    renderComparativo(reglas, modelo);
+    pushHistorial(lectura, reglas, modelo);
+  } catch (e) {
+    console.error(e);
+    renderError(e.message || String(e));
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Clasificar con AgenThinkOs';
+  }
+}
+
+function onLimpiar() {
+  $('resultadoModelo').innerHTML = '<p class="help">Presiona "Clasificar con AgenThinkOs" para ver la severidad calibrada y los juicios probabilísticos.</p>';
+  $('compReglas').innerHTML = '<h4>Reglas duras</h4><div class="empty">Sin clasificar aún</div>';
+  $('compModelo').innerHTML   = '<h4>Calibrado</h4><div class="empty">Sin clasificar aún</div>';
+  $('diffBanner').innerHTML = '';
+}
+
+// ============================================================
+// Bootstrap
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  cargarApiKey();
+  renderHistoriaMini();
+  cargarHistorial();
+
+  $('saveKeyBtn').addEventListener('click', guardarApiKey);
+  $('apiKey').addEventListener('input', actualizarEstadoKey);
+  $('clasificarBtn').addEventListener('click', onClasificar);
+  $('limpiarBtn').addEventListener('click', onLimpiar);
+
+  // ============================================================
+  // MODO BATCH: Boleta Diaria + Cromatografia
+  // ============================================================
+
+  // Estado batch
+  const batch = {
+    lecturas: [],     // [{idx, md, wob, rpm, den_in, den_out, ...}]
+    gases: [],        // [{md, gas_total, c1..nc5}] ordenado por md
+    hits: [],         // [{idx, md, regla, severidad, detalle}] - sincronizado con lecturas[idx]
+    modelo: [],       // resultados del modelo clasificados, indexados por idx
+    boletaCargada: false,
+    cromCargada: false,
+    clasificando: false,
+  };
+
+  // Reutilizamos mismas reglas que anomaly_detector.py
+  const BATCH_RULES = {
+    gas_factor_pico: 5,
+    gas_umbral_absoluto: 5000,
+    densidad_caida_pct: 5,
+    rop_caida_pct: 80,
+  };
+  const BATCH_VENTANA = 20;
+  const BATCH_SEV_ORDER = ['baja', 'media', 'alta', 'critica'];
+
+  function batchMediana(arr) {
+    const c = arr.filter(v => v != null && v > 0);
+    if (!c.length) return 0;
+    const s = [...c].sort((a, b) => a - b);
+    const n = s.length;
+    return n % 2 === 1 ? s[n >> 1] : (s[(n >> 1) - 1] + s[n >> 1]) / 2;
+  }
+  function batchPromedio(arr) {
+    const c = arr.filter(v => v != null && v > 0);
+    return c.length ? c.reduce((a, b) => a + b, 0) / c.length : 0;
+  }
+
+  // ----- Parsers (SheetJS) -----
+  // Estructura validada contra Boleta Diaria OAE del 17/jul/2022 de Mulach-12.
+  function parsearBoleta(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const wb = XLSX.read(data, { type: 'array' });
+          const ws = wb.Sheets['PARAMETROS'] || wb.Sheets[wb.SheetNames[0]];
+          const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+          // Headers en filas 5-7 (1-indexed). Datos desde fila 8.
+          // Columnas: 0=PROFUND, 2=PESO S-BARRENA, 3=RPM, 4=PRESION BOMBA,
+          // 7=GASTO, 8=DENSIDAD ENTRADA, 9=DENSIDAD SALIDA, 10=TEMP ENTRADA,
+          // 11=TEMP SALIDA
+          const lecturas = [];
+          for (let i = 7; i < rows.length; i++) {
+            const r = rows[i];
+            const md = parseFloat(r[0]);
+            if (!md || md <= 0) continue;
+            const f = (j) => parseFloat(r[j]) || 0;
+            lecturas.push({
+              idx: lecturas.length,
+              md,
+              wob: f(2),
+              rpm: f(3),
+              presion: f(4),
+              gasto: f(7),
+              den_in: f(8),
+              den_out: f(9),
+              temp_in: f(10),
+              temp_out: f(11),
+            });
+          }
+          resolve(lecturas);
+        } catch (err) {
+          reject(err);
+        }
+      };
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  function parsearCromatografia(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const wb = XLSX.read(data, { type: 'array' });
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+          // Headers en filas 5-6. Datos desde fila 7.
+          // Columnas: 0=PROFUNDIDAD, 1=GAS TOTAL, 2=C1, 3=C2, 4=C3,
+          // 5=IC4, 6=NC4, 7=IC5, 8=NC5
+          const gases = [];
+          for (let i = 6; i < rows.length; i++) {
+            const r = rows[i];
+            const md = parseFloat(r[0]);
+            if (!md || md <= 0) continue;
+            const f = (j) => parseFloat(r[j]) || 0;
+            gases.push({
+              md,
+              gas_total: f(1),
+              c1: f(2), c2: f(3), c3: f(4),
+              ic4: f(5), nc4: f(6), ic5: f(7), nc5: f(8),
+            });
+          }
+          gases.sort((a, b) => a.md - b.md);
+          resolve(gases);
+        } catch (err) {
+          reject(err);
+        }
+      };
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  function lookupGas(mdObjetivo) {
+    if (!batch.gases.length) return null;
+    // busqueda binaria manual
+    const arr = batch.gases;
+    let lo = 0, hi = arr.length - 1;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (arr[mid].md < mdObjetivo) lo = mid + 1;
+      else hi = mid;
+    }
+    // candidato = lo, comparar con lo-1
+    let mejor = lo;
+    if (lo > 0 && Math.abs(arr[lo - 1].md - mdObjetivo) < Math.abs(arr[lo].md - mdObjetivo)) {
+      mejor = lo - 1;
+    }
+    return arr[mejor];
+  }
+
+  // ----- Detectores (port de pure_detect_*) -----
+  function detectarBatchGas(lectura, history) {
+    if (!batch.gases.length) return null;
+    const gp = lookupGas(lectura.md);
+    if (!gp || gp.gas_total <= 0) return null;
+    const gas = gp.gas_total;
+
+    // background = mediana del history (ventana 20)
+    const bg = batchMediana(history.map(h => {
+      const g = lookupGas(h.md);
+      return g ? g.gas_total : 0;
+    }));
+    const fp = BATCH_RULES.gas_factor_pico;
+    if (bg > 0 && gas > bg * fp) {
+      const factor = gas / bg;
+      const sev = factor > 10 ? 'critica' : factor > 5 ? 'alta' : 'media';
+      return {
+        regla: `gas_factor_${fp}x`,
+        severidad: sev,
+        detalle: `Gas ${gas.toFixed(0)} ppm = ${factor.toFixed(1)}x sobre background ${bg.toFixed(0)} ppm (md ${gp.md.toFixed(0)})`,
+        extras: { gas_md: gp.md, gas_total: gas, c1: gp.c1, c2: gp.c2, c3: gp.c3, factor },
+      };
+    }
+    const ua = BATCH_RULES.gas_umbral_absoluto;
+    if (gas > ua) {
+      const sev = gas > 2 * ua ? 'alta' : 'media';
+      return {
+        regla: `gas_absoluto_${ua}`,
+        severidad: sev,
+        detalle: `Gas ${gas.toFixed(0)} ppm supera umbral ${ua} ppm (md ${gp.md.toFixed(0)})`,
+        extras: { gas_md: gp.md, gas_total: gas },
+      };
+    }
+    return null;
+  }
+
+  function detectarBatchDensidad(lectura) {
+    const { den_in, den_out } = lectura;
+    if (!(den_in > 0 && den_out > 0)) return null;
+    const caida = ((den_in - den_out) / den_in) * 100;
+    const u = BATCH_RULES.densidad_caida_pct;
+    if (caida > u) {
+      const sev = caida > 8 ? 'critica' : 'alta';
+      return {
+        regla: `densidad_caida_${u}pct`,
+        severidad: sev,
+        detalle: `Den salida ${den_out} es ${caida.toFixed(1)}% menor que entrada ${den_in}`,
+        extras: { caida_pct: caida },
+      };
+    }
+    return null;
+  }
+
+  function detectarBatchRop(lectura, history) {
+    if (history.length < 5) return null;
+    const md_actual = lectura.md;
+    const md_prev = history[history.length - 1].md;
+    if (md_actual <= md_prev) return null;
+    const rop_actual = (md_actual - md_prev) * 60;
+    const rops = [];
+    for (let j = 1; j < Math.min(BATCH_VENTANA, history.length); j++) {
+      if (history[j].md > history[j - 1].md) rops.push((history[j].md - history[j - 1].md) * 60);
+    }
+    const prom = batchPromedio(rops);
+    if (!prom || prom <= 0) return null;
+    const caida = ((prom - rop_actual) / prom) * 100;
+    const u = BATCH_RULES.rop_caida_pct;
+    if (caida > u) {
+      const sev = caida < 90 ? 'media' : 'alta';
+      return {
+        regla: `rop_caida_${u}pct`,
+        severidad: sev,
+        detalle: `ROP cae ${caida.toFixed(0)}% (${rop_actual.toFixed(1)} vs ${prom.toFixed(1)} m/h)`,
+        extras: { rop_actual, caida_pct: caida },
+      };
+    }
+    return null;
+  }
+
+  function ejecutarDeteccionBatch() {
+    batch.hits = batch.lecturas.map(() => []);
+    for (let i = 0; i < batch.lecturas.length; i++) {
+      const lec = batch.lecturas[i];
+      const hist = batch.lecturas.slice(Math.max(0, i - BATCH_VENTANA), i);
+      const resultados = [];
+      for (const det of [
+        (l, h) => detectarBatchGas(l, h),
+        (l) => detectarBatchDensidad(l),
+        (l, h) => detectarBatchRop(l, h),
+      ]) {
+        try {
+          const r = det(lec, hist);
+          if (r) resultados.push(r);
+        } catch (_) {}
+      }
+      batch.hits[i] = resultados;
+    }
+  }
+
+  function peorSevBatch(idx) {
+    const hits = batch.hits[idx] || [];
+    let peor = 'baja';
+    let peorIdx = -1;
+    for (const h of hits) {
+      const i = BATCH_SEV_ORDER.indexOf(h.severidad);
+      if (i > peorIdx) { peor = h.severidad; peorIdx = i; }
+    }
+    return peor;
+  }
+
+  // ----- UI handlers batch -----
+  const dropBoleta = $('dropBoleta');
+  const fileBoleta = $('fileBoleta');
+  const dropCrom = $('dropCromatografia');
+  const fileCrom = $('fileCromatografia');
+
+  function setupDropZone(zone, input, onLoad) {
+    zone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      zone.classList.add('dragover');
+    });
+    zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+    zone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      zone.classList.remove('dragover');
+      if (e.dataTransfer.files.length) {
+        input.files = e.dataTransfer.files;
+        input.dispatchEvent(new Event('change'));
+      }
+    });
+    input.addEventListener('change', () => {
+      if (input.files.length) onLoad(input.files[0]);
+    });
+  }
+
+  async function onBoletaCargada(file) {
+    try {
+      const lecturas = await parsearBoleta(file);
+      if (!lecturas.length) {
+        alert('No se encontraron lecturas en la hoja PARAMETROS. Verifica que sea una Boleta Diaria OAE.');
+        return;
+      }
+      batch.lecturas = lecturas;
+      batch.boletaCargada = true;
+      $('filenameBoleta').textContent = `${file.name} — ${lecturas.length} lecturas (md ${lecturas[0].md.toFixed(0)}–${lecturas[lecturas.length - 1].md.toFixed(0)})`;
+      dropBoleta.classList.add('loaded');
+      actualizarEstadoBotonesBatch();
+    } catch (err) {
+      alert('Error leyendo boleta: ' + err.message);
+    }
+  }
+
+  async function onCromatografiaCargada(file) {
+    try {
+      const gases = await parsearCromatografia(file);
+      if (!gases.length) {
+        alert('No se encontraron puntos en la cromatografia.');
+        return;
+      }
+      batch.gases = gases;
+      batch.cromCargada = true;
+      $('filenameCromatografia').textContent = `${file.name} — ${gases.length} puntos (md ${gases[0].md.toFixed(0)}–${gases[gases.length - 1].md.toFixed(0)})`;
+      dropCrom.classList.add('loaded');
+      actualizarEstadoBotonesBatch();
+    } catch (err) {
+      alert('Error leyendo cromatografia: ' + err.message);
+    }
+  }
+
+  setupDropZone(dropBoleta, fileBoleta, onBoletaCargada);
+  setupDropZone(dropCrom, fileCrom, onCromatografiaCargada);
+
+  function actualizarEstadoBotonesBatch() {
+    $('detectarBtn').disabled = !batch.boletaCargada || batch.clasificando;
+    const nCriticos = contarHitsUnicos();
+    $('clasificarBatchBtn').disabled = !batch.boletaCargada || nCriticos === 0 || batch.clasificando;
+    $('descargarBatchBtn').disabled = !batch.modelo.length;
+  }
+
+  function contarHitsUnicos() {
+    return batch.hits.reduce((acc, hs) => acc + (hs.length ? 1 : 0), 0);
+  }
+
+  function resumenHits() {
+    const total = batch.lecturas.length;
+    const hits = contarHitsUnicos();
+    const dist = { critica: 0, alta: 0, media: 0, baja: 0 };
+    for (let i = 0; i < batch.lecturas.length; i++) {
+      if (batch.hits[i].length) dist[peorSevBatch(i)]++;
+    }
+    return { total, hits, dist };
+  }
+
+  function mostrarResumenBatch() {
+    const r = resumenHits();
+    $('batchSummary').style.display = '';
+    $('statLecturas').textContent = r.total;
+    $('statHits').textContent = r.hits;
+    $('statClasificadas').textContent = batch.modelo.length;
+    $('statCritica').textContent = r.dist.critica + ' / ' + r.dist.alta + ' / ' + r.dist.media + ' / ' + r.dist.baja;
+    let tokens = 0;
+    for (const k of Object.keys(batch.modelo)) {
+      tokens += (batch.modelo[k].tokens?.input || 0) + (batch.modelo[k].tokens?.output || 0);
+    }
+    $('statTokens').textContent = tokens.toLocaleString();
+  }
+
+  function renderTablaBatch() {
+    const tbody = $('batchTableBody');
+    tbody.innerHTML = '';
+    let rowsAdded = 0;
+    for (let i = 0; i < batch.lecturas.length; i++) {
+      const hits = batch.hits[i];
+      if (!hits.length) continue;
+      const lec = batch.lecturas[i];
+      const sevRegla = peorSevBatch(i);
+      const modelo = batch.modelo[i];
+      const gp = lookupGas(lec.md);
+      const tr = document.createElement('tr');
+      tr.className = 'row-' + sevRegla;
+      tr.innerHTML = `
+        <td class="md-col">${lec.md.toFixed(1)}</td>
+        <td>${hits.map(h => h.regla).join(', ')}</td>
+        <td><span class="sev-badge ${'sev-' + sevRegla}" style="font-size:10px;padding:2px 6px;">${sevRegla.toUpperCase()}</span></td>
+        <td>${modelo ? `<span class="sev-badge ${'sev-' + modelo.severidad_jev}" style="font-size:10px;padding:2px 6px;">${modelo.severidad_jev.toUpperCase()}</span>` : '<span style="color:#8a98a8;">pendiente</span>'}</td>
+        <td>${gp ? gp.gas_total.toFixed(0) : '<span style="color:#8a98a8;">–</span>'}</td>
+        <td>${modelo ? (modelo.es_gas_pesado * 100).toFixed(0) + '%' : '–'}</td>
+        <td>${modelo ? (modelo.es_tendencia_empeorando * 100).toFixed(0) + '%' : '–'}</td>
+        <td>${modelo && modelo.tokens ? (modelo.tokens.input + modelo.tokens.output) : '–'}</td>
+      `;
+      tbody.appendChild(tr);
+      rowsAdded++;
+    }
+    $('batchResultsWrap').style.display = rowsAdded ? '' : 'none';
+  }
+
+  function renderFilaBatch(i) {
+    // Re-render solo una fila existente (mas eficiente que toda la tabla)
+    renderTablaBatch();
+  }
+
+  async function onDetectarBatch() {
+    if (!batch.boletaCargada) return;
+    ejecutarDeteccionBatch();
+    mostrarResumenBatch();
+    $('batchResultsWrap').style.display = '';
+    renderTablaBatch();
+    actualizarEstadoBotonesBatch();
+  }
+
+  // Helper: clasificacion con retry exponencial para 429
+  async function clasificarUnaConRetry(lecturaIdx, maxIntentos = 3) {
+    const lec = batch.lecturas[lecturaIdx];
+    for (let intento = 1; intento <= maxIntentos; intento++) {
+      try {
+        const modelo = await clasificarConModelo(lec);
+        batch.modelo[lecturaIdx] = modelo;
+        return modelo;
+      } catch (err) {
+        const msg = String(err.message || err);
+        if ((msg.includes('429') || msg.includes('rate')) && intento < maxIntentos) {
+          const wait = 2000 * intento;
+          await new Promise(r => setTimeout(r, wait));
+          continue;
+        }
+        if (intento < maxIntentos && (msg.includes('network') || msg.includes('Network'))) {
+          await new Promise(r => setTimeout(r, 1000 * intento));
+          continue;
+        }
+        throw err;
+      }
+    }
+  }
+
+  async function onClasificarBatch() {
+    if (!batch.boletaCargada) return;
+    batch.clasificando = true;
+    actualizarEstadoBotonesBatch();
+    const hitsIdx = [];
+    for (let i = 0; i < batch.lecturas.length; i++) {
+      if (batch.hits[i].length) hitsIdx.push(i);
+    }
+    if (!hitsIdx.length) {
+      batch.clasificando = false;
+      actualizarEstadoBotonesBatch();
+      return;
+    }
+
+    $('progressWrap').style.display = '';
+    const fill = $('progressFill');
+    const txt = $('progressText');
+    const RATE_MS = 1500;
+    let tiempoAcumMs = 0;
+    const t0 = Date.now();
+
+    for (let k = 0; k < hitsIdx.length; k++) {
+      const idx = hitsIdx[k];
+      txt.textContent = `${k + 1} / ${hitsIdx.length} — md ${batch.lecturas[idx].md.toFixed(1)}`;
+      fill.style.width = ((k + 1) / hitsIdx.length * 100) + '%';
+      try {
+        await clasificarUnaConRetry(idx);
+        renderFilaBatch(idx);
+        mostrarResumenBatch();
+      } catch (err) {
+        batch.modelo[idx] = { error: err.message || String(err) };
+      }
+      // Rate limit: ~1.5s entre requests (excepto en el ultimo)
+      if (k < hitsIdx.length - 1) {
+        const elapsed = Date.now() - t0;
+        const esperado = (k + 1) * RATE_MS;
+        const wait = Math.max(0, esperado - elapsed);
+        tiempoAcumMs += wait;
+        await new Promise(r => setTimeout(r, wait));
+      }
+    }
+
+    txt.textContent = `Completado: ${hitsIdx.length} clasificadas en ${((Date.now() - t0) / 1000).toFixed(0)}s`;
+    batch.clasificando = false;
+    actualizarEstadoBotonesBatch();
+    renderTablaBatch();
+  }
+
+  function onDescargarBatch() {
+    const resultados = [];
+    for (let i = 0; i < batch.lecturas.length; i++) {
+      if (!batch.hits[i].length) continue;
+      const lec = batch.lecturas[i];
+      const gp = lookupGas(lec.md);
+      resultados.push({
+        idx: i,
+        md: lec.md,
+        reglas_duras: batch.hits[i],
+        severidad_reglas: peorSevBatch(i),
+        modelo: batch.modelo[i] || null,
+        gas_point: gp ? { md: gp.md, gas_total: gp.gas_total, c1: gp.c1, c2: gp.c2, c3: gp.c3, ic4: gp.ic4, nc5: gp.nc5 } : null,
+      });
+    }
+    const blob = new Blob([JSON.stringify(resultados, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `clasificacion-batch-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function onLimpiarBatch() {
+    batch.lecturas = [];
+    batch.gases = [];
+    batch.hits = [];
+    batch.modelo = [];
+    batch.boletaCargada = false;
+    batch.cromCargada = false;
+    batch.clasificando = false;
+    $('filenameBoleta').textContent = '';
+    $('filenameCromatografia').textContent = '';
+    dropBoleta.classList.remove('loaded');
+    dropCrom.classList.remove('loaded');
+    $('batchSummary').style.display = 'none';
+    $('progressWrap').style.display = 'none';
+    $('batchResultsWrap').style.display = 'none';
+    $('batchTableBody').innerHTML = '';
+    actualizarEstadoBotonesBatch();
+  }
+
+  $('detectarBtn').addEventListener('click', onDetectarBatch);
+  $('clasificarBatchBtn').addEventListener('click', onClasificarBatch);
+  $('descargarBatchBtn').addEventListener('click', onDescargarBatch);
+  $('limpiarBatchBtn').addEventListener('click', onLimpiarBatch);
+});
+</script>
+</body>
+</html>

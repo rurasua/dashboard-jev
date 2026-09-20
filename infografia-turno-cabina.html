@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Infografía · Flujo de turno · Cabinas Geológicas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f5f0;
+    --surface: #ffffff;
+    --line: #e9e3d6;
+    --line-soft: #f0ebde;
+    --ink: #14171e;
+    --ink-2: #3a4256;
+    --muted: #7c7a72;
+    --primary: #2f6f5e;
+    --primary-deep: #1d4a3d;
+    --primary-soft: rgba(47, 111, 94, 0.08);
+    --accent: #c97b3f;
+    --accent-soft: rgba(201, 123, 63, 0.10);
+    --warn: #b06367;
+    --warn-soft: rgba(176, 99, 103, 0.10);
+    --neutral: #5a5e6b;
+    --neutral-soft: rgba(90, 94, 107, 0.10);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    font-size: 15px;
+    background-image:
+      radial-gradient(circle at 0% 0%, rgba(201, 123, 63, 0.04), transparent 50%),
+      radial-gradient(circle at 100% 100%, rgba(47, 111, 94, 0.04), transparent 50%);
+  }
+
+  h1, h2, h3, h4 { font-family: 'DM Serif Display', Georgia, serif; font-weight: 400; letter-spacing: -0.01em; color: var(--ink); }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .container { max-width: 960px; margin: 0 auto; padding: 60px 32px 80px; }
+
+  /* ===== HERO ===== */
+  .hero { margin-bottom: 64px; }
+  .hero-pre {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hero-pre .line { width: 30px; height: 1px; background: var(--accent); opacity: 0.6; }
+  .hero h1 {
+    font-size: 48px;
+    line-height: 1.05;
+    margin-bottom: 18px;
+    max-width: 760px;
+  }
+  .hero h1 em { font-style: italic; color: var(--primary); }
+  .hero-sub {
+    font-size: 18px;
+    color: var(--ink-2);
+    line-height: 1.5;
+    max-width: 680px;
+    margin-bottom: 32px;
+  }
+  .hero-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .hero-stat {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px 20px;
+  }
+  .hero-stat-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .hero-stat-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .hero-stat-sub { font-size: 12px; color: var(--muted); }
+  .hero-stat.primary .hero-stat-value { color: var(--primary); }
+  .hero-stat.accent .hero-stat-value { color: var(--accent); }
+
+  /* ===== SECTION ===== */
+  .section { margin-bottom: 72px; }
+  .section-head { margin-bottom: 28px; }
+  .section-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .section h2 {
+    font-size: 34px;
+    line-height: 1.1;
+    margin-bottom: 12px;
+  }
+  .section-intro {
+    font-size: 16px;
+    color: var(--ink-2);
+    line-height: 1.5;
+    max-width: 680px;
+  }
+
+  /* ===== COMPARISON CARDS ===== */
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .compare-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 24px 26px;
+  }
+  .compare-card.now { border-left: 3px solid var(--warn); }
+  .compare-card.next { border-left: 3px solid var(--primary); }
+  .compare-card-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .compare-card h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    margin-bottom: 12px;
+  }
+  .compare-card.next h3 { color: var(--primary-deep); }
+  .compare-card ul { list-style: none; padding: 0; }
+  .compare-card li {
+    display: flex;
+    gap: 10px;
+    padding: 6px 0;
+    font-size: 14px;
+    color: var(--ink-2);
+    line-height: 1.5;
+  }
+  .compare-card li svg {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    margin-top: 3px;
+  }
+  .compare-card.now li svg { color: var(--warn); }
+  .compare-card.next li svg { color: var(--primary); }
+
+  /* ===== TIMELINE ===== */
+  .timeline-block { margin-bottom: 48px; }
+  .timeline-block-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+    padding: 14px 20px;
+    border-radius: 10px;
+  }
+  .timeline-block-head.os { background: var(--primary-soft); }
+  .timeline-block-head.backend { background: var(--neutral-soft); }
+  .timeline-block-head.oe { background: var(--accent-soft); }
+  .timeline-block-head .icon-box {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .timeline-block-head.os .icon-box { background: var(--primary); color: white; }
+  .timeline-block-head.backend .icon-box { background: var(--neutral); color: white; }
+  .timeline-block-head.oe .icon-box { background: var(--accent); color: white; }
+  .timeline-block-head h3 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .timeline-block-head p {
+    font-size: 13px;
+    color: var(--ink-2);
+    margin: 0;
+  }
+
+  .timeline {
+    list-style: none;
+    padding: 0 0 0 8px;
+    margin: 0;
+    position: relative;
+  }
+  .timeline::before {
+    content: "";
+    position: absolute;
+    left: 8px;
+    top: 6px;
+    bottom: 6px;
+    width: 2px;
+    background: var(--line);
+  }
+  .timeline.os::before { background: var(--primary); opacity: 0.4; }
+  .timeline.backend::before { background: var(--neutral); opacity: 0.4; }
+  .timeline.oe::before { background: var(--accent); opacity: 0.4; }
+
+  .timeline li {
+    position: relative;
+    padding: 0 0 24px 36px;
+  }
+  .timeline li:last-child { padding-bottom: 4px; }
+
+  .timeline li::before {
+    content: "";
+    position: absolute;
+    left: 2px;
+    top: 6px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid var(--line);
+  }
+  .timeline.os li::before { border-color: var(--primary); background: var(--primary); }
+  .timeline.backend li::before { border-color: var(--neutral); background: var(--neutral); }
+  .timeline.oe li::before { border-color: var(--accent); background: var(--accent); }
+
+  .step-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 18px;
+    transition: all 0.15s;
+  }
+  .step-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+  .step-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+  .step-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    background: var(--bg);
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+  }
+  .step-time.abs { background: var(--ink); color: white; border-color: var(--ink); }
+  .step-arrow { color: var(--muted); font-size: 12px; }
+  .step-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+    flex: 1;
+    min-width: 0;
+  }
+  .step-card p {
+    font-size: 13.5px;
+    color: var(--ink-2);
+    line-height: 1.55;
+    margin-bottom: 8px;
+  }
+  .step-artifact {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--primary);
+    background: var(--primary-soft);
+    padding: 4px 10px;
+    border-radius: 4px;
+    margin-top: 4px;
+  }
+  .step-artifact svg { width: 12px; height: 12px; }
+  .step-card.backend .step-artifact {
+    color: var(--neutral);
+    background: var(--neutral-soft);
+  }
+  .step-card.oe .step-artifact {
+    color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  /* ===== KPI BARS ===== */
+  .kpi-grid {
+    display: grid;
+    gap: 14px;
+  }
+  .kpi-row {
+    display: grid;
+    grid-template-columns: 220px 1fr 90px;
+    gap: 16px;
+    align-items: center;
+    padding: 14px 18px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+  }
+  .kpi-row-label {
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .kpi-row-label small {
+    display: block;
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 400;
+    margin-top: 2px;
+  }
+  .kpi-bar {
+    height: 10px;
+    background: var(--line-soft);
+    border-radius: 5px;
+    overflow: hidden;
+    position: relative;
+  }
+  .kpi-fill {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 0.6s ease;
+  }
+  .kpi-fill.hoy { background: var(--warn); }
+  .kpi-fill.meta { background: var(--primary); }
+  .kpi-bar-meta {
+    position: absolute;
+    top: -3px;
+    width: 2px;
+    height: 16px;
+    background: var(--ink);
+  }
+  .kpi-row-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    text-align: right;
+    color: var(--ink-2);
+  }
+  .kpi-row-val strong { color: var(--ink); font-weight: 600; }
+  .kpi-row-val .hoy-color { color: var(--warn); }
+  .kpi-row-val .meta-color { color: var(--primary); }
+
+  /* ===== ROLES TABLE ===== */
+  .roles-grid {
+    display: grid;
+    grid-template-columns: 110px 1fr 1fr 1fr;
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .roles-grid > div {
+    background: var(--surface);
+    padding: 14px 18px;
+    font-size: 13.5px;
+  }
+  .roles-grid .head {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    text-transform: uppercase;
+    background: var(--bg);
+  }
+  .roles-grid .role {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .roles-grid .role-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .roles-grid .role-dot.os { background: var(--primary); }
+  .roles-grid .role-dot.backend { background: var(--neutral); }
+  .roles-grid .role-dot.oe { background: var(--accent); }
+  .roles-grid .cell {
+    color: var(--ink-2);
+    line-height: 1.5;
+  }
+
+  /* ===== FOOTER ===== */
+  .foot {
+    margin-top: 64px;
+    padding-top: 28px;
+    border-top: 1px solid var(--line);
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .foot-mono {
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
+  }
+
+  /* ===== MOBILE ===== */
+  @media (max-width: 720px) {
+    .container { padding: 40px 20px 60px; }
+    .hero h1 { font-size: 32px; }
+    .hero-sub { font-size: 16px; }
+    .hero-stats { grid-template-columns: 1fr; gap: 10px; }
+    .compare { grid-template-columns: 1fr; }
+    .section h2 { font-size: 26px; }
+    .kpi-row { grid-template-columns: 1fr; gap: 8px; }
+    .kpi-row-val { text-align: left; }
+    .roles-grid { grid-template-columns: 1fr; }
+    .roles-grid .head { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ==================== HERO ==================== -->
+  <header class="hero">
+    <div class="hero-pre">
+      <span class="line"></span>
+      Cabinas Geológicas · Flujo de turno optimizado
+      <span class="line"></span>
+    </div>
+    <h1>50 minutos de paperwork.<br><em>10 minutos del OE.</em></h1>
+    <p class="hero-sub">
+      Cómo transformar el traspaso de turno en cabinas geológicas: el Operador Saliente (OS) sube la boleta, el backend corre el modelo analítico sobre las lecturas candidatas, y el Operador Entrante (OE) revisa y firma un reporte pre-computado en lugar de analizarlo desde cero.
+    </p>
+    <div class="hero-stats">
+      <div class="hero-stat primary">
+        <div class="hero-stat-label">Trabajo del OE</div>
+        <div class="hero-stat-value">10 min</div>
+        <div class="hero-stat-sub">Solo lectura, validación y firma</div>
+      </div>
+      <div class="hero-stat accent">
+        <div class="hero-stat-label">Análisis JEV</div>
+        <div class="hero-stat-value">automático</div>
+        <div class="hero-stat-sub">Corre en backend al subir la boleta</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-label">Cobertura</div>
+        <div class="hero-stat-value">95-100%</div>
+        <div class="hero-stat-sub">Eventos del turno documentados</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== COMPARISON ==================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-tag">01 · Comparativa</div>
+      <h2>Cómo se ve hoy, y cómo se ve con la propuesta</h2>
+      <p class="section-intro">
+        El flujo actual depende de que el operador esté mirando la pantalla en el momento exacto. El flujo propuesto mueve la detección al backend, y deja al humano solo la validación.
+      </p>
+    </div>
+
+    <div class="compare">
+      <div class="compare-card now">
+        <div class="compare-card-label">Hoy · detección manual</div>
+        <h3>Discreto solo si el geólogo está mirando</h3>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Depende de atención continua del OS</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Eventos sutiles se pierden en turnos largos</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Cobertura real ≈ 60-80% de eventos del turno</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Reporte se arma al final, sin validar</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>OE entra sin saber qué pasó en el turno</li>
+        </ul>
+      </div>
+
+      <div class="compare-card next">
+        <div class="compare-card-label">Propuesta · JEV + handover</div>
+        <h3>Discreto siempre, valida solo si discrepa</h3>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Backend analiza 100% de las lecturas candidatas</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Reporte pre-computado listo al entrar el OE</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Cobertura ≈ 95-100%, hits ordenados por severity</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>OE solo valida, discrepa o confirma</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Handover verbal + reporte firmado en 25 min</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== TIMELINE ==================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-tag">02 · Paso a paso</div>
+      <h2>Minuto a minuto, quién hace qué</h2>
+      <p class="section-intro">
+        Cambio de turno a las 06:00 hrs. El OS cierra su turno (vespertino), el OE entra (matutino). Cada actor tiene tiempos acotados, no se traslapan, y el trabajo pesado lo hace el backend.
+      </p>
+    </div>
+
+    <!-- ============ OS: Operador Saliente ============ -->
+    <div class="timeline-block">
+      <div class="timeline-block-head os">
+        <div class="icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+          </svg>
+        </div>
+        <div>
+          <h3>Operador Saliente · OS (vespertino)</h3>
+          <p>Últimos 30 minutos del turno. Captura, sube archivos, hace handover.</p>
+        </div>
+      </div>
+
+      <ol class="timeline os">
+        <li>
+          <div class="step-card os">
+            <div class="step-head">
+              <span class="step-time abs">05:30 hrs</span>
+              <span class="step-arrow">→</span>
+              <span class="step-time">T − 30 min</span>
+              <span class="step-title">Cierre operativo del turno</span>
+            </div>
+            <p>Detiene perforación o la pone en modo circulación. Actualiza el SIOP del día con las observaciones finales. Revisa pendientes: ¿subió cromatografía? ¿Están cerrados los eventos pendientes?</p>
+            <span class="step-artifact">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              SIOP preliminar del turno (borrador final)
+            </span>
+          </div>
+        </li>
+
+        <li>
+          <div class="step-card os">
+            <div class="step-head">
+              <span class="step-time abs">05:40 hrs</span>
+              <span class="step-arrow">→</span>
+              <span class="step-time">T − 20 min</span>
+              <span class="step-title">Sube boleta y cromatografía al SaaS</span>
+            </div>
+            <p>Abre la cabina correspondiente en el SaaS, va a "Subir archivos del turno", arrastra la boleta CSV y la cromatografía del turno. Click en "Procesar turno".</p>
+            <span class="step-artifact">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              POST /api/cabins/{id}/shifts/vespertino (boleta + cromatografía)
+            </span>
+          </div>
+        </li>
+
+        <li>
+          <div class="step-card os">
+            <div class="step-head">
+              <span class="step-time abs">05:50 hrs</span>
+              <span class="step-arrow">→</span>
+              <span class="step-time">T − 10 min</span>
+              <span class="step-title">Handover verbal con el OE</span>
+            </div>
+            <p>Cara a cara en la cabina física. Cuenta qué pasó en el turno, responde dudas del OE. <strong>El OS no entra en detalle del análisis JEV</strong> — ese es trabajo del OE con la pantalla.</p>
+            <span class="step-artifact">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              Memoria viva del turno (no se persiste)
+            </span>
+          </div>
+        </li>
+
+        <li>
+          <div class="step-card os">
+            <div class="step-head">
+              <span class="step-time abs">05:55 hrs</span>
+              <span class="step-arrow">→</span>
+              <span class="step-time">T − 5 min</span>
+              <span class="step-title">Cierra su turno en el SaaS</span>
+            </div>
+            <p>Click en "Cerrar mi turno". Firma el SIOP preliminar y congela los archivos subidos (no se pueden re-subir sin permiso de admin). El OS se va a descansar.</p>
+            <span class="step-artifact">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              SIOP firmado, archivos del turno congelados
+            </span>
+          </div>
+        </li>
+      </ol>
+    </div>
+
+    <!-- ============ Backend ============ -->
+    <div class="timeline-block">
+      <div class="timeline-block-head backend">
+        <div class="icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px">
+            <rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/>
+          </svg>
+        </div>
+        <div>
+          <h3>Backend SaaS · automático</h3>
+          <p>No espera al OE. Procesa la boleta en cuanto el OS la sube, en paralelo al handover.</p>
+        </div>
+      </div>
+
+      <ol class="timeline backend">
+        <li>
+          <div class="step-card backend">
+            <div class="step-head">
+              <span class="step-time abs">05:35 hrs</span>
+              <span class="step-arrow">→</span>
+              <span class="step-time">T − 25 min</span>
+              <span class="step-title">Sistema WITSML genera la boleta cruda</span>
+            </div>
+            <p>El servidor WITSML de la cabina geológica genera el archivo CSV/Excel con las lecturas del turno completo. Cada 5-10 min durante 12 hrs = 80-150 registros con todos los parámetros.</p>
+            <span class="step-artifact">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              boleta_2024-XX-XX_vespertino.csv (80-150 filas)
+            </span>
+          </div>
+        </li>
+
+        <li>
+          <div class="step-card backend">
+            <div class="step-head">
+              <span class="step-time abs">05:41 hrs</span>
+              <span class="step-arrow">→</span>
+              <span class="step-time">T − 19 min</span>
+              <span class="step-title">Filtra lecturas candidatas y llama a JEV</span>
+            </div>
+            <p>El backend parsea el CSV, filtra lecturas con <code>gas_total &gt; umbral_gas</code> (default 2000 ppm) o factor &gt; 5× sobre background. Para cada candidata, llama a <code>/v1/systemone</code> con los parámetros completos. Guarda la respuesta en Firestore.</p>
+            <span class="step-artifact">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              cabins/{id}/manifestaciones/{auto} con severity + termogenico + tendencia
+            </span>
+          </div>
+        </li>
+
+        <li>
+          <div class="step-card backend">
+            <div class="step-head">
+              <span class="step-time abs">05:45 hrs</span>
+              <span class="step-arrow">→</span>
+              <span class="step-time">T − 15 min</span>
+              <span class="step-title">Genera reporte preliminar priorizado</span>
+            </div>
+            <p>Clasifica los hits por severity (ALTA → MEDIA → BAJA), arma un reporte estructurado con cada evento: md, hora, gas_pico, factor, severity, termogenico, formación sugerida. Persiste y notifica al OE por push/email.</p>
+            <span class="step-artifact">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              Reporte preliminar listo para revisión del OE
+            </span>
+          </div>
+        </li>
+      </ol>
+    </div>
+
+    <!-- ============ OE: Operador Entrante ============ -->
+    <div class="timeline-block">
+      <div class="timeline-block-head oe">
+        <div class="icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/>
+          </svg>
+        </div>
+        <div>
+          <h3>Operador Entrante · OE (matutino)</h3>
+          <p>Primeros 25 minutos del turno. Solo lee, valida, firma. Empieza a operar a las 06:25.</p>
+        </div>
+      </div>
+
+      <ol class="timeline oe">
+        <li>
+          <div class="step-card oe">
+            <div class="step-head">
+              <span class="step-time abs">06:00 hrs</span>
+              <span class="step-arrow">→</span>
+              <span class="step-time">T + 0 min</span>
+              <span class="step-title">Toma posición, abre el SaaS</span>
+            </div>
+            <p>El sistema muestra un banner automático: "Reporte del turno anterior listo para revisión (3 hits detectados)".</p>
+            <span class="step-artifact">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              Banner: "Reporte previo listo"
+            </span>
+          </div>
+        </li>
+
+        <li>
+          <div class="step-card oe">
+            <div class="step-head">
+              <span class="step-time abs">06:05 hrs</span>
+              <span class="step-arrow">→</span>
+              <span class="step-time">T + 5 min</span>
+              <span class="step-title">Lee el reporte pre-computado</span>
+            </div>
+            <p>Ve una lista priorizada (no vista individual de cada evento). Ejemplo: <strong>ALTA</strong> md 2716, gas 18,500 ppm, 82×, formación Kimmeridgiano, termogénico 87% · <strong>MEDIA</strong> md 2780, gas 4,200 ppm · <strong>BAJA</strong> md 2840, gas 2,800 ppm.</p>
+            <span class="step-artifact">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              Lista priorizada en pantalla (1 min lectura por evento)
+            </span>
+          </div>
+        </li>
+
+        <li>
+          <div class="step-card oe">
+            <div class="step-head">
+              <span class="step-time abs">06:10 hrs</span>
+              <span class="step-arrow">→</span>
+              <span class="step-time">T + 10 min</span>
+              <span class="step-title">Valida contra el handover verbal</span>
+            </div>
+            <p>Cruza mentalmente lo que le dijo el OS (memoria reciente, máx 30 min atrás) con lo que dice JEV. Marca hits coincidentes, detecta hits nuevos que el OS no mencionó, descarta si considera falso positivo con justificación.</p>
+            <span class="step-artifact">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              Validaciones guardadas por item (validado_por, discrepancia)
+            </span>
+          </div>
+        </li>
+
+        <li>
+          <div class="step-card oe">
+            <div class="step-head">
+              <span class="step-time abs">06:15 hrs</span>
+              <span class="step-arrow">→</span>
+              <span class="step-time">T + 15 min</span>
+              <span class="step-title">Análisis profundo solo si hay discrepancia</span>
+            </div>
+            <p>Si discrepa de algún hit, abre el botón "Ver análisis detallado" del item. Esto abre el dashboard JEV con la lectura pre-llenada vía query params (<code>?md=2780&amp;rop=...&amp;c1=...</code>) y el comparativo contra reglas duras. Decide mantener discrepancia o aceptar.</p>
+            <span class="step-artifact">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              Dashboard JEV con lectura específica + análisis comparativo
+            </span>
+          </div>
+        </li>
+
+        <li>
+          <div class="step-card oe">
+            <div class="step-head">
+              <span class="step-time abs">06:20 hrs</span>
+              <span class="step-arrow">→</span>
+              <span class="step-time">T + 20 min</span>
+              <span class="step-title">Firma el reporte del turno</span>
+            </div>
+            <p>Click en "Firmar reporte de turno". El reporte de manifestaciones queda oficialmente documentado: hits detectados por JEV + validación del OE + firma digital del geólogo responsable. Se notifica al coordinador y al área administrativa.</p>
+            <span class="step-artifact">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              Reporte firmado, archivado, listo para el SIOP consolidado
+            </span>
+          </div>
+        </li>
+
+        <li>
+          <div class="step-card oe">
+            <div class="step-head">
+              <span class="step-time abs">06:25 hrs</span>
+              <span class="step-arrow">→</span>
+              <span class="step-time">T + 25 min</span>
+              <span class="step-title">Empieza a monitorear perforación activa</span>
+            </div>
+            <p>A partir de aquí ya está 100% en el nuevo turno. Monitorea perforación en tiempo real, atento a las alertas inmediatas que el sistema emite para eventos críticos durante su turno.</p>
+            <span class="step-artifact">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              Operación normal del turno (vigilancia activa)
+            </span>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ==================== ROLES TABLE ==================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-tag">03 · Quién hace qué</div>
+      <h2>Reparto de trabajo en el ciclo</h2>
+      <p class="section-intro">
+        La mayor parte del trabajo pesado la hace el backend. El OS solo captura y sube. El OE solo lee y valida. Ninguno hace análisis desde cero.
+      </p>
+    </div>
+
+    <div class="roles-grid">
+      <div class="head">Rol</div>
+      <div class="head">Responsabilidad</div>
+      <div class="head">Cuándo</div>
+      <div class="head">Carga</div>
+
+      <div class="role"><span class="role-dot os"></span> OS</div>
+      <div class="cell">Capturar datos, subir archivos, hacer handover verbal, firmar cierre de turno.</div>
+      <div class="cell">Últimos 30 min de su turno (T-30 a T-0)</div>
+      <div class="cell"><strong>~10 min</strong> de trabajo activo</div>
+
+      <div class="role"><span class="role-dot backend"></span> Backend</div>
+      <div class="cell">Parsear boleta, filtrar candidatos, llamar a JEV, persistir hits, generar reporte, notificar al OE.</div>
+      <div class="cell">Paralelo a T-25 a T-15</div>
+      <div class="cell"><strong>5-15 min</strong> de cómputo (no humano)</div>
+
+      <div class="role"><span class="role-dot oe"></span> OE</div>
+      <div class="cell">Leer reporte pre-computado, cruzar con handover, validar o discrepar, firmar.</div>
+      <div class="cell">Primeros 25 min de su turno (T+0 a T+25)</div>
+      <div class="cell"><strong>~10 min</strong> de trabajo activo</div>
+    </div>
+  </section>
+
+  <!-- ==================== KPI ==================== -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-tag">04 · KPI</div>
+      <h2>Cómo medir si funciona</h2>
+      <p class="section-intro">
+        Si en 30 días no puedes responder estas tres preguntas, la propuesta no está entregando valor. Las métricas son el termómetro, no la decoración.
+      </p>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-row">
+        <div class="kpi-row-label">
+          Tiempo medio de detección
+          <small>De "ocurre el evento" a "queda en el reporte"</small>
+        </div>
+        <div class="kpi-bar">
+          <div class="kpi-fill hoy" style="width:80%"></div>
+          <div class="kpi-bar-meta" style="left:8%" title="Meta con JEV"></div>
+        </div>
+        <div class="kpi-row-val">
+          <span class="hoy-color">30-120 min</span> <strong>→</strong> <span class="meta-color">&lt;15 min</span>
+        </div>
+      </div>
+
+      <div class="kpi-row">
+        <div class="kpi-row-label">
+          Cobertura de eventos
+          <small>% de eventos del turno documentados en el reporte</small>
+        </div>
+        <div class="kpi-bar">
+          <div class="kpi-fill hoy" style="width:70%"></div>
+          <div class="kpi-bar-meta" style="left:98%" title="Meta con JEV"></div>
+        </div>
+        <div class="kpi-row-val">
+          <span class="hoy-color">60-80%</span> <strong>→</strong> <span class="meta-color">95-100%</span>
+        </div>
+      </div>
+
+      <div class="kpi-row">
+        <div class="kpi-row-label">
+          Tiempo del OE por turno
+          <small>Minutos dedicados a validación de manifestaciones</small>
+        </div>
+        <div class="kpi-bar">
+          <div class="kpi-fill hoy" style="width:2%"></div>
+          <div class="kpi-bar-meta" style="left:18%" title="Meta con JEV"></div>
+        </div>
+        <div class="kpi-row-val">
+          <span class="hoy-color">0 min</span> <strong>→</strong> <span class="meta-color">5-10 min</span>
+        </div>
+      </div>
+
+      <div class="kpi-row">
+        <div class="kpi-row-label">
+          Tiempo de ciclo completo
+          <small>De subida de boleta a reporte firmado</small>
+        </div>
+        <div class="kpi-bar">
+          <div class="kpi-fill hoy" style="width:40%"></div>
+          <div class="kpi-bar-meta" style="left:50%" title="Meta con JEV"></div>
+        </div>
+        <div class="kpi-row-val">
+          <span class="hoy-color">disperso, 2+ hrs</span> <strong>→</strong> <span class="meta-color">50 min totales, 10 del OE</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="foot">
+    <div class="foot-mono">AgenThinkOs · Cabinas Geológicas</div>
+    <div class="foot-mono">Flujo de turno · v1 · 2026</div>
+  </footer>
+
+</div>
+</body>
+</html>

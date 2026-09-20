@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgenThinkOs — Guía del Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f5f0;
+    --surface: #ffffff;
+    --line: #e9e3d6;
+    --line-soft: #f1ebde;
+    --ink: #14171e;
+    --ink-2: #3a4256;
+    --muted: #7c7a72;
+    --primary: #c97b3f;
+    --primary-soft: rgba(201, 123, 63, 0.08);
+    --accent-blue: #3b6e8f;
+    --accent-green: #2f6f5e;
+    --accent-red: #b06367;
+    --accent-yellow: #b89b3f;
+    --dash-bg: #0f1419;
+    --dash-panel: #1a2332;
+    --dash-line: #2a3a4f;
+    --dash-text: #c0c8d0;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Outfit", sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    background: var(--bg);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { max-width: 1080px; margin: 0 auto; padding: 48px 24px 80px; }
+
+  /* ============================================================
+     Tipografia
+     ============================================================ */
+  h1 {
+    font-family: "DM Serif Display", serif;
+    font-size: 44px;
+    font-weight: 400;
+    line-height: 1.15;
+    margin: 0 0 16px;
+    letter-spacing: -0.01em;
+  }
+  h1 .small {
+    font-size: 18px;
+    font-family: "Outfit", sans-serif;
+    color: var(--muted);
+    display: block;
+    margin-top: 8px;
+    letter-spacing: 0;
+    font-weight: 400;
+  }
+  h2 {
+    font-family: "DM Serif Display", serif;
+    font-size: 28px;
+    font-weight: 400;
+    margin: 56px 0 20px;
+    letter-spacing: -0.005em;
+  }
+  h3 {
+    font-family: "Outfit", sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    margin: 24px 0 12px;
+    color: var(--ink);
+  }
+  p { margin: 0 0 14px; }
+  code, .mono {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.88em;
+    background: var(--line-soft);
+    padding: 1px 6px;
+    border-radius: 3px;
+    color: var(--ink-2);
+  }
+  pre {
+    background: #1a1a1a;
+    color: #e6e6e6;
+    padding: 14px 18px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13px;
+    line-height: 1.55;
+    margin: 12px 0 18px;
+  }
+  pre code { background: transparent; padding: 0; color: inherit; }
+
+  /* ============================================================
+     Hero
+     ============================================================ */
+  .hero { margin-bottom: 64px; }
+  .hero-meta {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .hero-meta .pill {
+    padding: 4px 10px;
+    border: 1px solid var(--line);
+    border-radius: 100px;
+    font-weight: 500;
+  }
+  .lede {
+    font-size: 17px;
+    color: var(--ink-2);
+    max-width: 720px;
+    margin-top: 16px;
+  }
+
+  .quick-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 32px;
+  }
+  .quick-stat {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px 20px;
+  }
+  .quick-stat .label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .quick-stat .value {
+    font-family: "DM Serif Display", serif;
+    font-size: 28px;
+    color: var(--primary);
+    margin-top: 4px;
+  }
+  .quick-stat .sub {
+    font-size: 13px;
+    color: var(--ink-2);
+    margin-top: 4px;
+  }
+
+  /* ============================================================
+     Anatomia (mockup del dashboard)
+     ============================================================ */
+  .anatomy {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 28px;
+    margin: 24px 0 32px;
+  }
+  .anatomy-grid {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    grid-template-rows: auto auto;
+    gap: 12px;
+    background: var(--dash-bg);
+    padding: 12px;
+    border-radius: 10px;
+  }
+  .mock-cell {
+    background: var(--dash-panel);
+    border: 1px solid var(--dash-line);
+    border-radius: 6px;
+    padding: 14px;
+    color: var(--dash-text);
+    font-size: 12px;
+    min-height: 90px;
+  }
+  .mock-label {
+    font-family: "Outfit", sans-serif;
+    text-transform: uppercase;
+    font-size: 10px;
+    color: #8a98a8;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .mock-fake-row {
+    background: #0f1419;
+    border-radius: 3px;
+    padding: 5px 8px;
+    margin-bottom: 4px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    color: #c0c8d0;
+    display: flex;
+    justify-content: space-between;
+  }
+  .mock-fake-bar {
+    background: #2a5a9a;
+    border-radius: 2px;
+    height: 6px;
+    margin-bottom: 4px;
+  }
+  .mock-sev-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    background: #b85a1a;
+    color: white;
+    border-radius: 3px;
+    font-weight: 700;
+    font-size: 11px;
+    margin-bottom: 6px;
+  }
+  .mock-batch {
+    grid-column: 1 / -1;
+    min-height: 110px;
+  }
+  .mock-dropzone {
+    border: 2px dashed #4a90e2;
+    border-radius: 6px;
+    padding: 10px;
+    text-align: center;
+    color: #c0c8d0;
+    font-size: 11px;
+  }
+
+  .annotations {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 24px;
+    font-size: 13px;
+  }
+  .anno-item {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+  }
+  .anno-num {
+    font-family: "DM Serif Display", serif;
+    color: var(--primary);
+    font-size: 18px;
+    min-width: 24px;
+  }
+
+  /* ============================================================
+     Steps / Timeline
+     ============================================================ */
+  .steps {
+    list-style: none;
+    padding: 0;
+    margin: 24px 0;
+    position: relative;
+  }
+  .steps::before {
+    content: "";
+    position: absolute;
+    left: 14px;
+    top: 6px;
+    bottom: 6px;
+    width: 2px;
+    background: var(--primary);
+    opacity: 0.25;
+  }
+  .step {
+    position: relative;
+    padding: 0 0 24px 44px;
+  }
+  .step::before {
+    content: "";
+    position: absolute;
+    left: 6px;
+    top: 4px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: white;
+    border: 3px solid var(--primary);
+  }
+  .step-title {
+    font-weight: 600;
+    color: var(--ink);
+    font-size: 16px;
+    margin-bottom: 6px;
+  }
+  .step-detail {
+    color: var(--ink-2);
+    font-size: 14px;
+  }
+
+  /* ============================================================
+     Bench / Comparativa
+     ============================================================ */
+  .bench { display: grid; grid-template-columns: 200px 1fr 80px; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px dashed var(--line-soft); }
+  .bench:last-child { border-bottom: none; }
+  .bench-label { color: var(--ink-2); font-size: 14px; }
+  .bench-track { height: 14px; background: var(--line-soft); border-radius: 4px; overflow: hidden; }
+  .bench-fill { height: 100%; background: var(--primary); border-radius: 4px; transition: width 0.4s ease; }
+  .bench-val { font-family: "JetBrains Mono", monospace; font-size: 13px; color: var(--ink); text-align: right; }
+
+  /* ============================================================
+     KV / Glosario
+     ============================================================ */
+  .kv {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    row-gap: 12px;
+    column-gap: 20px;
+    margin: 24px 0;
+  }
+  .kv dt {
+    color: var(--muted);
+    font-weight: 600;
+    border-bottom: 1px dashed var(--line);
+    padding-bottom: 8px;
+    font-size: 13px;
+  }
+  .kv dd {
+    margin: 0;
+    border-bottom: 1px dashed var(--line);
+    padding-bottom: 8px;
+    color: var(--ink-2);
+    font-size: 14px;
+  }
+
+  /* ============================================================
+     Layout 2-column (diagrama de flujo + texto)
+     ============================================================ */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    align-items: start;
+    margin: 24px 0;
+  }
+  .callout {
+    background: var(--primary-soft);
+    border-left: 3px solid var(--primary);
+    padding: 14px 18px;
+    border-radius: 0 6px 6px 0;
+    margin: 20px 0;
+    font-size: 14px;
+  }
+  .callout strong { color: var(--ink); }
+
+  /* ============================================================
+     Tabla comparativa
+     ============================================================ */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 18px 0;
+    font-size: 14px;
+  }
+  th {
+    text-align: left;
+    padding: 10px 14px;
+    background: var(--surface);
+    border-bottom: 2px solid var(--line);
+    font-weight: 600;
+    color: var(--ink);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px dashed var(--line-soft);
+    color: var(--ink-2);
+  }
+  tr:last-child td { border-bottom: none; }
+  td:first-child { font-weight: 600; color: var(--ink); }
+
+  /* ============================================================
+     Seccion dividers
+     ============================================================ */
+  section { margin-top: 64px; }
+  section:first-of-type { margin-top: 0; }
+
+  @media (max-width: 768px) {
+    .container { padding: 32px 18px; }
+    h1 { font-size: 32px; }
+    h2 { font-size: 24px; }
+    .quick-stats { grid-template-columns: 1fr; }
+    .two-col { grid-template-columns: 1fr; gap: 16px; }
+    .anatomy-grid { grid-template-columns: 1fr; }
+    .annotations { grid-template-columns: 1fr; }
+    .kv { grid-template-columns: 130px 1fr; }
+    .bench { grid-template-columns: 130px 1fr 70px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ============================================================
+       HERO
+       ============================================================ -->
+  <header class="hero">
+    <div class="hero-meta">
+      <span class="pill">v0.2 · Sept 2026</span>
+      <span class="pill">Uso local · Single-user</span>
+      <span class="pill">MVP validado con Boleta OAE real</span>
+    </div>
+    <h1>
+      AgenThinkOs — Dashboard de Clasificación de Manifestaciones Geológicas
+      <span class="small">Guía visual para nuevos usuarios</span>
+    </h1>
+    <p class="lede">
+      Una sola página web que combina las <strong>reglas duras</strong> de tu detector actual con un <strong>modelo calibrado</strong> que entiende formación, composición del gas y tendencia. Funciona con doble click para una lectura, o arrastrando una Boleta completa para clasificar cientos de eventos en minutos.
+    </p>
+
+    <div class="quick-stats">
+      <div class="quick-stat">
+        <div class="label">Modo manual</div>
+        <div class="value">1 lectura</div>
+        <div class="sub">Editas, presionas un botón, ves resultado</div>
+      </div>
+      <div class="quick-stat">
+        <div class="label">Modo batch</div>
+        <div class="value">N lecturas</div>
+        <div class="sub">Arrastras Boleta + cromatografía, detecta críticos</div>
+      </div>
+      <div class="quick-stat">
+        <div class="label">Latencia</div>
+        <div class="value">~1.5 s</div>
+        <div class="sub">por clasificación individual</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       1. ANATOMIA DEL DASHBOARD
+       ============================================================ -->
+  <section>
+    <h2>1. Anatomía del dashboard</h2>
+    <p>Una sola página con cuatro zonas. La columna izquierda es donde editas; las tres de la derecha muestran los resultados de cada clasificación. Abajo, ocupando todo el ancho, está el modo batch.</p>
+
+    <div class="anatomy">
+      <div class="anatomy-grid">
+        <!-- Header + API key -->
+        <div class="mock-cell" style="grid-column: 1 / -1;">
+          <div class="mock-label">▣ Header + barra de API key</div>
+          <div style="display:flex;gap:12px;align-items:center;">
+            <strong style="color:#ffffff;font-size:13px;">AgenThinkOs — Clasificador de Manifestaciones</strong>
+            <span style="color:#7adf8e;background:#1f3a2a;padding:2px 8px;border-radius:3px;font-size:10px;margin-left:auto;">✓ key cargada</span>
+          </div>
+          <div style="margin-top:6px;font-size:10px;color:#8a98a8;">Título · subtítulo · campo de API key (se guarda en localStorage)</div>
+        </div>
+
+        <!-- Panel lectura -->
+        <div class="mock-cell">
+          <div class="mock-label">① Panel de lectura (col izq)</div>
+          <div class="mock-fake-row"><span>md (m)</span><span>3580.5</span></div>
+          <div class="mock-fake-row"><span>rop</span><span>4.2</span></div>
+          <div class="mock-fake-row"><span>wob</span><span>12</span></div>
+          <div class="mock-fake-row"><span>gas_total</span><span style="color:#d4af37;">8200</span></div>
+          <div class="mock-fake-row"><span>Formación</span><span>Kimmeridge</span></div>
+          <div style="margin-top:6px;font-size:10px;color:#8a98a8;">Editas los valores manualmente</div>
+        </div>
+
+        <!-- Panel resultados -->
+        <div style="display:grid;grid-template-columns:1fr;gap:12px;">
+          <div class="mock-cell">
+            <div class="mock-label">② Resultado del modelo</div>
+            <span class="mock-sev-badge">ALTA</span>
+            <div class="mock-fake-bar" style="width:31%;background:#8b1a1a;"></div>
+            <div class="mock-fake-bar" style="width:66%;background:#b85a1a;"></div>
+            <div style="margin-top:6px;font-size:10px;color:#8a98a8;">Severidad · distribución de probabilidad · juicios probabilísticos</div>
+          </div>
+          <div class="mock-cell">
+            <div class="mock-label">③ Comparativo reglas duras vs modelo</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:10px;">
+              <div style="padding:6px;background:#0f1419;border-radius:3px;">
+                <div style="color:#8a98a8;">REGLAS DURAS</div>
+                <div>gas_absoluto · MEDIA</div>
+                <div>densidad_caida · ALTA</div>
+              </div>
+              <div style="padding:6px;background:#0f1419;border-radius:3px;">
+                <div style="color:#8a98a8;">MODELO</div>
+                <div>severidad · ALTA</div>
+                <div>termogénico · 77%</div>
+              </div>
+            </div>
+            <div style="margin-top:6px;background:#1f3a2a;color:#7adf8e;padding:4px 8px;border-radius:3px;font-size:10px;">✓ Coinciden: ambas dicen "ALTA"</div>
+          </div>
+        </div>
+
+        <!-- Modo batch full-width -->
+        <div class="mock-cell mock-batch">
+          <div class="mock-label">④ Modo Batch (full width)</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="mock-dropzone">📄 Arrastra tu Boleta Diaria (XLS)</div>
+            <div class="mock-dropzone">📊 Arrastra tu cromatografía (XLSX, opcional)</div>
+          </div>
+          <div style="margin-top:8px;display:flex;gap:6px;">
+            <span style="padding:4px 10px;background:#2a5a9a;color:white;border-radius:3px;font-size:10px;">1) Detectar críticas</span>
+            <span style="padding:4px 10px;background:#2a5a9a;color:white;border-radius:3px;font-size:10px;">2) Clasificar con modelo</span>
+            <span style="padding:4px 10px;background:#2a3a4f;color:white;border-radius:3px;font-size:10px;">Descargar JSON</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="annotations">
+        <div class="anno-item"><span class="anno-num">①</span><span><strong>Edición</strong>: 12 campos numéricos + 2 selects (formación, operación) + 4 lecturas de historia reciente.</span></div>
+        <div class="anno-item"><span class="anno-num">②</span><span><strong>Veredicto del modelo</strong>: severidad + las 4 probabilidades como barras horizontales + 2 juicios probabilísticos (termogénico, tendencia).</span></div>
+        <div class="anno-item"><span class="anno-num">③</span><span><strong>Comparativo lado a lado</strong>: lo que dicen las reglas duras vs lo que dice el modelo, con banner verde/amarillo/rojo.</span></div>
+        <div class="anno-item"><span class="anno-num">④</span><span><strong>Modo batch</strong>: arrastras archivos, detecta hits con reglas duras, los clasifica en loop con barra de progreso.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       2. MODO MANUAL — FLUJO
+       ============================================================ -->
+  <section>
+    <h2>2. Modo manual — flujo de uso</h2>
+    <p>Para 1 a 3 lecturas interesantes del turno. Una clasificación toma ~1.5 segundos y muestra el veredicto inmediatamente.</p>
+
+    <ol class="steps">
+      <li class="step">
+        <div class="step-title">Pegar la API key (solo la primera vez)</div>
+        <div class="step-detail">
+          Arriba del todo hay un campo <code>API key del proveedor</code>. Pegala, presioná <strong>Guardar</strong>. Queda en el <code>localStorage</code> de tu navegador — no se sube a ningún servidor. Si el status se pone verde <code>✓ key cargada</code>, está listo.
+        </div>
+      </li>
+      <li class="step">
+        <div class="step-title">Editar la lectura (o usar los valores pre-llenados)</div>
+        <div class="step-detail">
+          La columna izquierda tiene los 12 campos numéricos: <code>md, rop, wob, rpm, den_in, den_out, gas_total, c1..c5</code>. Los selects Formación y Operación vienen con valores por defecto del PRD (Kimmeridge + perforando rotando).
+        </div>
+      </li>
+      <li class="step">
+        <div class="step-title">Click en "Clasificar con AgenThinkOs"</div>
+        <div class="step-detail">
+          ~1-2 segundos mientras el modelo responde. El botón muestra un spinner mientras tanto.
+        </div>
+      </li>
+      <li class="step">
+        <div class="step-title">Interpretar los 3 paneles de resultado</div>
+        <div class="step-detail">
+          <strong>Severidad</strong> (badge grande arriba), <strong>distribución</strong> (qué tan seguro está el modelo de cada una), <strong>juicios</strong> (probabilidades de gas termogénico y tendencia agravante), y el <strong>comparativo</strong> con las reglas duras. Si coincide con las reglas, banner verde; si difieren, ámbar o rojo.
+        </div>
+      </li>
+      <li class="step">
+        <div class="step-title">La clasificación se guarda en el historial</div>
+        <div class="step-detail">
+          Abajo a la derecha, panel <strong>Historial</strong>. Cada fila tiene botón <strong>Recargar</strong> que rellena el formulario con esa lectura, para que puedas iterar rápido.
+        </div>
+      </li>
+    </ol>
+
+    <div class="callout">
+      <strong>Consejo:</strong> si tu navegador pide permisos al cargar la página, deciles que sí. El dashboard necesita hacer fetch al endpoint del modelo.
+    </div>
+  </section>
+
+  <!-- ============================================================
+       3. MODO BATCH — FLUJO
+       ============================================================ -->
+  <section>
+    <h2>3. Modo batch — flujo de uso</h2>
+    <p>Cuando tienes un día entero de operaciones (cientos de lecturas). Arrastras los archivos y el sistema detecta solo las críticas.</p>
+
+    <div class="two-col">
+      <div>
+        <h3>Qué archivos acepta</h3>
+        <table>
+          <tr><th>Archivo</th><th>Qué contiene</th></tr>
+          <tr><td>Boleta Diaria</td><td>Parámetros de perforación (XLS legacy, hoja PARAMETROS)</td></tr>
+          <tr><td>Cromatografía</td><td>Composición de gas C1..nC5 por profundidad (XLSX)</td></tr>
+        </table>
+        <p style="font-size:13px;color:var(--muted);">La cromatografía es opcional pero altamente recomendada — sin ella no se aplica la regla de gas, que es la que más dispara en casos reales.</p>
+      </div>
+      <div>
+        <h3>Qué hace el sistema</h3>
+        <ol class="steps" style="margin:0;">
+          <li class="step">
+            <div class="step-title">Parsea los archivos en el navegador</div>
+            <div class="step-detail">SheetJS lee XLS/XLSX. Tu data nunca sale de tu máquina hasta el momento de clasificar.</div>
+          </li>
+          <li class="step">
+            <div class="step-title">Aplica las 3 reglas duras</div>
+            <div class="step-detail">gas (factor + absoluto), densidad (caída), ROP (caída). Para Boletas típicas resulta en ~1% de lecturas críticas.</div>
+          </li>
+          <li class="step">
+            <div class="step-title">Clasifica solo las críticas con el modelo</div>
+            <div class="step-detail">~1.5s por hit, con barra de progreso y retry automático en caso de rate-limit (429).</div>
+          </li>
+        </ol>
+      </div>
+    </div>
+
+    <h3>Costos y tiempos esperados</h3>
+    <p>Para una Boleta típica (~800 lecturas, ~10 hits detectados):</p>
+    <div>
+      <div class="bench"><span class="bench-label">10 lecturas manuales</span><div class="bench-track"><div class="bench-fill" style="width:15%;"></div></div><span class="bench-val">~15 s</span></div>
+      <div class="bench"><span class="bench-label">50 hits batch</span><div class="bench-track"><div class="bench-fill" style="width:42%;"></div></div><span class="bench-val">~1.5 min</span></div>
+      <div class="bench"><span class="bench-label">200 hits batch</span><div class="bench-track"><div class="bench-fill" style="width:80%;"></div></div><span class="bench-val">~5 min</span></div>
+      <div class="bench"><span class="bench-label">1000 hits batch (auditoría)</span><div class="bench-track"><div class="bench-fill" style="width:100%;"></div></div><span class="bench-val">~25 min</span></div>
+    </div>
+
+    <div class="callout">
+      <strong>Costo estimado:</strong> ~1000 tokens de input + 50 de output por clasificación → a tarifas estándar de API equivale a centavos de dólar por día de cabina.
+    </div>
+  </section>
+
+  <!-- ============================================================
+       4. GLOSARIO
+       ============================================================ -->
+  <section>
+    <h2>4. Glosario rápido</h2>
+    <dl class="kv">
+      <dt>Reglas duras</dt>
+      <dd>Las 3 reglas de umbral que ya tienes en <code>anomaly_detector.py</code> (gas factor 5×, densidad caída 5%, ROP caída 80%). Opacas, rápidas, sin contexto geológico.</dd>
+
+      <dt>Modelo calibrado</dt>
+      <dd>El modelo de IA que recibe los mismos números MÁS el contexto (formación, operación, composición del gas, historia reciente) y devuelve una severidad con probabilidades. Tarda ~1.5s.</dd>
+
+      <dt>Severidad</dt>
+      <dd>Etiqueta categórica: <code>critica</code>, <code>alta</code>, <code>media</code>, <code>baja</code>. La peor de las dos (reglas vs modelo) es la que reporta el sistema.</dd>
+
+      <dt>Termogénico</dt>
+      <dd>Gas cuya composición indica origen térmico profundo (presencia de C2, C3, iC4, nC5). El modelo estima la probabilidad en 0-100%.</dd>
+
+      <dt>Tendencia agravante</dt>
+      <dd>Si en los últimos 15 minutos la situación empeora (gas subiendo + ROP cayendo + densidad bajando) vs estabilizándose. Probabilidad 0-100%.</dd>
+
+      <dt>CORS</dt>
+      <dd>Política del navegador que bloquea requests cross-origin. Por eso el dashboard <strong>no</strong> se abre con doble-click directo del HTML — necesita el proxy local en <code>http://localhost:8000</code>.</dd>
+
+      <dt>md, rop, wob</dt>
+      <dd><code>md</code> = measured depth (profundidad). <code>rop</code> = rate of penetration (velocidad de perforación). <code>wob</code> = weight on bit (peso sobre la barrena).</dd>
+
+      <dt>Boleta Diaria</dt>
+      <dd>Reporte diario de operaciones de perforación. Formato XLS legacy de OAE. Hoja <code>PARAMETROS</code> contiene las lecturas por metro.</dd>
+    </dl>
+  </section>
+
+  <!-- ============================================================
+       5. SETUP LOCAL (4 PASOS)
+       ============================================================ -->
+  <section>
+    <h2>5. Setup local — 4 pasos en PowerShell</h2>
+    <p>Si arrancás de cero en una máquina nueva, este es el orden. Tiempo total: ~15 minutos.</p>
+
+    <h3>Paso 1 — Activar el venv de Python</h3>
+    <pre><code>&amp; 'C:\Users\Geo Estratos\.venvs\typesafe\Scripts\Activate.ps1'</code></pre>
+    <p>El prompt ahora empieza con <code>(typesafe)</code>. Si falla por "execution of scripts is disabled", ejecutá antes: <code>Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned</code></p>
+
+    <h3>Paso 2 — Inyectar la API key en la sesión</h3>
+    <pre><code>$env:TYPESAFE_API_KEY = [Environment]::GetEnvironmentVariable('TYPESAFE_API_KEY', 'User')</code></pre>
+
+    <h3>Paso 3 — Arrancar el proxy local</h3>
+    <pre><code>python 'C:\projects\Cabinas Geologicas\typesafe-lab\proxy_dashboard.py'</code></pre>
+    <p>Dejá esta ventana abierta. Verás un mensaje como <code>Abre el dashboard en: http://localhost:8000</code>.</p>
+
+    <h3>Paso 4 — Abrir Chrome en localhost:8000</h3>
+    <p>NO abras el HTML con doble click (vuelve a CORS). Usá siempre la URL <code>http://localhost:8000</code>.</p>
+
+    <div class="callout">
+      <strong>¿Por qué el proxy?</strong> El navegador bloquea requests cross-origin desde <code>file://</code> (cuando abrís un HTML local). El proxy local sirve el dashboard en <code>http://localhost:8000</code> y agrega los headers CORS correctos, además de inyectar la API key desde el entorno. Es la solución más simple sin pasar a Fase 2 (backend Flask).
+    </div>
+  </section>
+
+  <!-- ============================================================
+       6. ARCHIVOS DEL PROYECTO
+       ============================================================ -->
+  <section>
+    <h2>6. Archivos del proyecto</h2>
+    <table>
+      <tr><th>Archivo</th><th>Ubicación</th><th>Para qué</th></tr>
+      <tr><td><code>dashboard.html</code></td><td><code>C:\projects\dashboard-jev\</code></td><td>El producto. Single-file, abrir vía proxy.</td></tr>
+      <tr><td><code>.gitignore</code></td><td><code>C:\projects\dashboard-jev\</code></td><td>Protege secretos, builds, OS junk.</td></tr>
+      <tr><td><code>proxy_dashboard.py</code></td><td><code>C:\projects\Cabinas Geologicas\typesafe-lab\</code></td><td>Servidor local que resuelve CORS. ~150 líneas.</td></tr>
+      <tr><td><code>detectar_criticos_boleta.py</code></td><td><code>C:\projects\Cabinas Geologicas\typesafe-lab\</code></td><td>Script offline para validar el reader con datos reales antes del port al dashboard.</td></tr>
+      <tr><td><code>clasificar_severidad.py</code></td><td><code>C:\projects\Cabinas Geologicas\typesafe-lab\</code></td><td>Demo SDK Python del proveedor. Referencia.</td></tr>
+      <tr><td><code>primer_test.py</code></td><td><code>C:\projects\Cabinas Geologicas\typesafe-lab\</code></td><td>Smoke test del setup del SDK.</td></tr>
+    </table>
+  </section>
+
+  <!-- ============================================================
+       FOOTER
+       ============================================================ -->
+  <footer style="margin-top:80px;padding-top:24px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);text-align:center;">
+    AgenThinkOs — Dashboard MVP · v0.2 · Generado 2026-09-19<br>
+    Repo: <a href="https://github.com/rurasua/dashboard-jev" style="color:var(--primary);">github.com/rurasua/dashboard-jev</a>
+  </footer>
+
+</div>
+</body>
+</html>
